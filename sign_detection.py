@@ -13,6 +13,11 @@ TM_CCOEFF_THRESHOLD = 1000000
 
 class SignDetector:
 
+    Y_MIN = 250
+    Y_MAX = 500
+    X_MIN = 750
+    X_MAX = 1200
+
     def __init__(self):
         pass
 
@@ -52,9 +57,12 @@ class SignDetector:
         sign_on_template = cv2.imread(TEMPLATE_FILEPATH, cv2.IMREAD_GRAYSCALE)
         return sign_on_template
 
+    def _get_subset_of_frame(self, frame):
+        frame = frame[self.Y_MIN:self.Y_MAX, self.X_MIN:self.X_MAX]
+        return frame
+
     def plot_template_matching_for_video(self, video_path, skip=5):
         """ Plot template matching strength over time for a provided video """
-        # TODO: only template match a section of the frame
         capture = load_video(video_path)
         num_frames = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
 
@@ -69,6 +77,7 @@ class SignDetector:
                 continue
 
             gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            gray_frame = self._get_subset_of_frame(gray_frame)
             max_val, max_loc = self.template_match(gray_frame)
 
             frame_nums.append(i)
