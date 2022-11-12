@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 
 def load_video(filepath):
     """ Load video as a cv2 VideoCapture given its filepath """
-    print('fdsa')
     cap = cv2.VideoCapture(filepath)
     num_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     width  = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -34,16 +33,10 @@ def display_video(filepath, frame_shape=(960, 540)):
     cv2.destroyAllWindows()
 
 
-def display_rectangle_of_image(image_path, upper_left=(335, 890), lower_right=(405, 1020)):
+def display_rectangle_of_image(image_path, upper_left=(250, 750), lower_right=(500, 1200)):
     """ Display a portion of an image defined by the upper left and lower right corners.
     The corners are in units of pixels in format row, col """
     image = cv2.imread(image_path)
     image_rectangle = image[upper_left[0]:lower_right[0],upper_left[1]:lower_right[1],:]
     plt.imshow(image_rectangle)
     plt.show()
-    cv2.imwrite('image.png', image_rectangle)
-
-
-if __name__ == '__main__':
-    # display_video('data/20200103.082000.11foot82b.copy.mp4')
-    display_rectangle_of_image('data/sign_on_example.png')
