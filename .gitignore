@@ -1,3 +1,4 @@
 # Ignore video files in data folder
 *.mp4
 *.jpg
+*.png
