@@ -2,6 +2,9 @@
 
 Analyzing potential crashes at the [11foot8](https://11foot8.com) bridge.
 
+## Setup
+To set up the repository, clone the repo, create and environment, and run `pip install requirements.txt` to install the required packages.
+
 ## Usage
 To get timestamps of potential crashes using image discrepancies across the crash bar, run:
 
