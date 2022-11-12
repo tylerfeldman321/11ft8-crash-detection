@@ -6,7 +6,11 @@ from utils import load_video
 from tqdm import tqdm
 
 
-TEMPLATE_FILEPATH = os.path.join('data', 'sign_on_template.png')
+# TODO: collect data for positive and negative examples and plot histogram of template matching values for the two distributions; see if they are linearly separable
+
+DATA_DIR = 'data'
+RESULTS_DIR = 'results'
+TEMPLATE_FILEPATH = os.path.join(DATA_DIR, 'sign_on_template.png')
 TEMPLATE_MATCHING_METHODS = [cv2.TM_CCOEFF, cv2.TM_CCOEFF_NORMED, cv2.TM_CCORR,
                              cv2.TM_CCORR_NORMED, cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]
 TM_CCOEFF_THRESHOLD = 1000000
@@ -94,13 +98,14 @@ class SignDetector:
         plt.ylabel('Strength of Template Matching')
         plt.show()
 
-        np.save(f'template_matching_{video_file_basename}', template_match_values)
+        save_path = os.path.join(RESULTS_DIR, f'template_matching_{video_file_basename}')
+        np.save(save_path, template_match_values)
 
 
 if __name__ == "__main__":
     sign_detector = SignDetector()
 
-    sign_on_example = cv2.imread('data/sign_on_example.png', 0)
-    sign_detector.template_match(sign_on_example, display_result=True)
+    # sign_on_example = cv2.imread('data/sign_on_example.png', 0)
+    # sign_detector.template_match(sign_on_example, display_result=True)
 
-    sign_detector.plot_template_matching_for_video('data/20200103.082000.11foot82b.copy.mp4')
+    sign_detector.plot_template_matching_for_video(r'data\2019-09-19_Truck-turns-right-c149\20190919.164000.11foot82b.copy.mp4')
