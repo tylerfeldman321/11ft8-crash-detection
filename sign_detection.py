@@ -54,6 +54,7 @@ class SignDetector:
 
     def plot_template_matching_for_video(self, video_path, skip=5):
         """ Plot template matching strength over time for a provided video """
+        # TODO: only template match a section of the frame
         capture = load_video(video_path)
         num_frames = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
 
