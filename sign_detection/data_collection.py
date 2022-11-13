@@ -131,7 +131,7 @@ def label_data_from_video_file(video_path):
 
 def plot_kde_and_roc(padding=10, n=10000):
     # TODO: why does p_d not reach 1?
-    values, labels = load_data()
+    values, labels = load_labeled_data()
 
     negative_values = values[labels == 0].reshape(-1, 1)
     positive_values = values[labels == 1].reshape(-1, 1)
@@ -181,7 +181,7 @@ def plot_kde_and_roc(padding=10, n=10000):
     print(f'Area under the curve: {auc}')
 
 
-def load_data():
+def load_labeled_data():
     data_files = glob.glob(os.path.join(LABELS_DIR, '*.npy'))
 
     all_data = None
