@@ -4,7 +4,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import cv2
 import numpy as np
 from sign_detector import SignDetector
-from utils import load_video, display_rectangle_of_image, get_date_of_video_file
+from utils import load_video, display_rectangle_of_image, get_date_of_video_file, display_video
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 import os
@@ -63,18 +63,29 @@ def plot_template_matching_for_video(self, video_path, skip=5, show=True, save=T
 
 def template_matching_for_all_videos_in_data(self):
     """ Save template matching results for all videos in data """
-    video_filepaths = glob.glob(os.path.join(DATA_DIR, '*', '*.mp4'))
-    for video_filepath in video_filepaths:
-        plot_template_matching_for_video(video_filepath, show=False, save=True)
+    video_paths = glob.glob(os.path.join(DATA_DIR, '*', '*.mp4'))
+    for video_path in video_paths:
+        plot_template_matching_for_video(video_path, show=False, save=True)
+
+
+def save_image_and_template_from_video(video_path):
+    """ Save image and template from wherever the video is stopped """
+    date = get_date_of_video_file(video_path)
+    last_frame = display_video(video_path)
+    cv2.imwrite(os.path.join(RESULTS_DIR, f'saved_frame_{date}.png'), last_frame)
+    template = get_sign_template_from_image(last_frame)
+    cv2.imwrite(os.path.join(RESULTS_DIR, f'saved_template_{date}.png'), template)
 
 
 def get_sign_template_from_image(image):
+    """ Get sign template from an image """
     upper_left = (335, 890)
     lower_right = (405, 1020)
-    display_rectangle_of_image(image, upper_left, lower_right)
+    return display_rectangle_of_image(image, upper_left, lower_right)
 
 
 def label_data_from_video_file(video_path):
+    """ Label data for a video file """
     sign_detector = SignDetector()
 
     capture = load_video(video_path)
@@ -130,6 +141,7 @@ def label_data_from_video_file(video_path):
 
 
 def plot_kde_and_roc(padding=10, n=10000):
+    """ Plot KDE and ROC for labeled data """
     # TODO: why does p_d not reach 1?
     values, labels = load_labeled_data()
 
@@ -198,11 +210,13 @@ def load_labeled_data():
 if __name__ == "__main__":
 
     # sign_on_example = cv2.imread('data/sign_on_example.png', 0)
-    # sign_detector.template_match(sign_on_example, display_result=True)
+    # template_match(sign_on_example, display_result=True)
 
-    # sign_detector.plot_template_matching_for_video(r'data\2020-02-21_Penske-scrapes-roof-in-snow-c154\20200221.123001.11foot82b.copy.mp4')
-    # sign_detector.template_matching_for_all_videos_in_data()
+    # plot_template_matching_for_video(r'data\2020-02-21_Penske-scrapes-roof-in-snow-c154\20200221.123001.11foot82b.copy.mp4')
+    # template_matching_for_all_videos_in_data()
 
     # label_data_from_video_file(r'data\2019-10-03_Digger-hits-bridge-c148\20191003.141001.11foot82b.copy.mp4')
     
-    plot_kde_and_roc()
+    save_image_and_template_from_video(r'..\data\2020-05-14-truck-scrapes-roof-c156\20200514.104001.11foot82b.copy.mp4')
+
+    # plot_kde_and_roc()
