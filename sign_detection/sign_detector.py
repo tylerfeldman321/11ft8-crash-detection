@@ -4,12 +4,12 @@ import os
 import matplotlib.pyplot as plt
 from utils import load_video
 from tqdm import tqdm
+import glob
 
-
+# TODO: average across all signs to get more generalizable template
 # TODO: collect data for positive and negative examples and plot histogram of template matching values for the two distributions; see if they are linearly separable
 
-DATA_DIR = 'data'
-RESULTS_DIR = 'results'
+DATA_DIR = '../data'
 TEMPLATE_FILEPATH = os.path.join(DATA_DIR, 'sign_on_template.png')
 TEMPLATE_MATCHING_METHODS = [cv2.TM_CCOEFF, cv2.TM_CCOEFF_NORMED, cv2.TM_CCORR,
                              cv2.TM_CCORR_NORMED, cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]
@@ -61,51 +61,6 @@ class SignDetector:
         sign_on_template = cv2.imread(TEMPLATE_FILEPATH, cv2.IMREAD_GRAYSCALE)
         return sign_on_template
 
-    def _get_subset_of_frame(self, frame):
+    def get_roi_of_frame(self, frame):
         frame = frame[self.Y_MIN:self.Y_MAX, self.X_MIN:self.X_MAX]
         return frame
-
-    def plot_template_matching_for_video(self, video_path, skip=5):
-        """ Plot template matching strength over time for a provided video """
-        capture = load_video(video_path)
-        num_frames = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
-
-        frame_nums = []
-        template_match_values = []
-
-        for i in tqdm (range(num_frames), desc="Running template matching..."):
-            ret, frame = capture.read()
-            if frame is None:
-                break
-            if i % skip == 0:
-                continue
-
-            gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            gray_frame = self._get_subset_of_frame(gray_frame)
-            max_val, max_loc = self.template_match(gray_frame)
-
-            frame_nums.append(i)
-            template_match_values.append(max_val)
-
-        capture.release()
-        frame_nums = np.array(frame_nums)
-        template_match_values = np.array(template_match_values)
-
-        video_file_basename = os.path.basename(video_path)
-        plt.plot(frame_nums, template_match_values)
-        plt.title(f'Template Matching Results for {video_file_basename}')
-        plt.xlabel('Frame')
-        plt.ylabel('Strength of Template Matching')
-        plt.show()
-
-        save_path = os.path.join(RESULTS_DIR, f'template_matching_{video_file_basename}')
-        np.save(save_path, template_match_values)
-
-
-if __name__ == "__main__":
-    sign_detector = SignDetector()
-
-    # sign_on_example = cv2.imread('data/sign_on_example.png', 0)
-    # sign_detector.template_match(sign_on_example, display_result=True)
-
-    sign_detector.plot_template_matching_for_video(r'data\2019-09-19_Truck-turns-right-c149\20190919.164000.11foot82b.copy.mp4')
