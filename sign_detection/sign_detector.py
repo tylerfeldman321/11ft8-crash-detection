@@ -6,9 +6,6 @@ from utils import load_video
 from tqdm import tqdm
 import glob
 
-# TODO: average across all signs to get more generalizable template
-# TODO: collect data for positive and negative examples and plot histogram of template matching values for the two distributions; see if they are linearly separable
-
 DATA_DIR = '../data'
 TEMPLATE_FILEPATH = os.path.join(DATA_DIR, 'sign_on_template.png')
 TEMPLATE_MATCHING_METHODS = [cv2.TM_CCOEFF, cv2.TM_CCOEFF_NORMED, cv2.TM_CCORR,

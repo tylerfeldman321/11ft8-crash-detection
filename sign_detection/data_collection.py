@@ -12,6 +12,10 @@ import glob
 from sklearn.neighbors import KernelDensity
 
 
+# TODO: average across all signs to get more generalizable template
+# TODO: collect data for positive and negative examples and plot histogram of template matching values for the two distributions; see if they are linearly separable
+
+
 DATA_DIR = '../data'
 RESULTS_DIR = '../results'
 LABELS_DIR = '../labels'
