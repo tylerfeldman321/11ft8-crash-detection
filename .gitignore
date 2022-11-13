@@ -4,4 +4,6 @@
 *.png
 /data/
 /results/
-/__pycache__/
+/labels/
+**/__pycache__/
+/.idea/
