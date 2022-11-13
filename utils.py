@@ -16,15 +16,14 @@ def load_video(filepath):
 
 
 def display_video(filepath, frame_shape=(960, 540)):
-    """ Display a video given its filepath and desired frame size """
+    """ Display a video given its filepath and desired frame size. Return last frame shown """
     capture = cv2.VideoCapture(filepath)
     while True:
         ret, frame = capture.read()
         if frame is None:
             break
 
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        frame_resized = cv2.resize(gray, frame_shape)
+        frame_resized = cv2.resize(frame, frame_shape)
         cv2.imshow('frame', frame_resized)
 
         if cv2.waitKey(1) == ord('q'):
@@ -32,19 +31,24 @@ def display_video(filepath, frame_shape=(960, 540)):
 
     capture.release()
     cv2.destroyAllWindows()
+    return frame
 
 
-def display_rectangle_of_image(image_path, upper_left=(250, 750), lower_right=(500, 1200)):
+def display_rectangle_of_image(image, upper_left=(250, 750), lower_right=(500, 1200)):
     """ Display a portion of an image defined by the upper left and lower right corners.
-    The corners are in units of pixels in format row, col """
-    image = cv2.imread(image_path)
+    The corners are in units of pixels in format row, col. image can be either a numpy array
+    or a path to an image """
+
+    if type(image) == str:
+        image = cv2.imread(image)
+
     image_rectangle = image[upper_left[0]:lower_right[0],upper_left[1]:lower_right[1],:]
     plt.imshow(image_rectangle)
     plt.show()
+    return image_rectangle
 
 
 def get_date_of_video_file(video_path):
     video_file_basename = os.path.basename(video_path)
     date = video_file_basename.split('.')[0]
-    print(date)
     return date
