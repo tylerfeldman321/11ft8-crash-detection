@@ -2,3 +2,6 @@
 *.mp4
 *.jpg
 *.png
+/data/
+/results/
+/__pycache__/
