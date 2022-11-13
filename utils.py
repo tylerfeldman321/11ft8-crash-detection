@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 
 def load_video(filepath):
@@ -40,3 +41,10 @@ def display_rectangle_of_image(image_path, upper_left=(250, 750), lower_right=(5
     image_rectangle = image[upper_left[0]:lower_right[0],upper_left[1]:lower_right[1],:]
     plt.imshow(image_rectangle)
     plt.show()
+
+
+def get_date_of_video_file(video_path):
+    video_file_basename = os.path.basename(video_path)
+    date = video_file_basename.split('.')[0]
+    print(date)
+    return date
