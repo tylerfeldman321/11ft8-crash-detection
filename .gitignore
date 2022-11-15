@@ -3,7 +3,7 @@
 *.jpg
 *.png
 /data/
-/results/
-/labels/
+sign_detection/results/
+sign_detection/labels/
 **/__pycache__/
 /.idea/
