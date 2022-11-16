@@ -13,6 +13,9 @@ from sklearn.neighbors import KernelDensity
 
 
 # TODO: average across all signs to get more generalizable template
+    # TODO: get templates for last three or so videos - the region where the sign is located is different for the videos at the end
+    # TODO: write function to average the templates
+
 # TODO: collect data for positive and negative examples and plot histogram of template matching values for the two distributions; see if they are linearly separable
 
 
