@@ -19,6 +19,7 @@ from sklearn.neighbors import KernelDensity
 DATA_DIR = '../data'
 RESULTS_DIR = 'results'
 LABELS_DIR = 'labels'
+TEMPLATE_DIR = 'templates'
 
 
 def plot_template_matching_for_video(video_path, skip=5, show=True, save=True):
@@ -75,9 +76,9 @@ def save_image_and_template_from_video(video_path):
     """ Save image and template from wherever the video is stopped """
     date = get_date_of_video_file(video_path)
     last_frame = display_video(video_path)
-    cv2.imwrite(os.path.join(RESULTS_DIR, f'saved_frame_{date}.png'), last_frame)
+    cv2.imwrite(os.path.join(TEMPLATE_DIR, f'saved_frame_{date}.png'), last_frame)
     template = get_sign_template_from_image(last_frame)
-    cv2.imwrite(os.path.join(RESULTS_DIR, f'saved_template_{date}.png'), template)
+    cv2.imwrite(os.path.join(TEMPLATE_DIR, f'saved_template_{date}.png'), template)
 
 
 def get_sign_template_from_image(image):
@@ -231,12 +232,10 @@ if __name__ == "__main__":
     # label_data_from_video_file(r'data\2019-10-03_Digger-hits-bridge-c148\20191003.141001.11foot82b.copy.mp4')
     
 
-    # video_paths = glob.glob(os.path.join(DATA_DIR, '*', '*.mp4'))
-    # for video_path in video_paths:
-    #     print(video_path)
-    #     save_image_and_template_from_video(video_path)
+    video_paths = glob.glob(os.path.join(DATA_DIR, '*', '*.mp4'))
+    for video_path in video_paths:
+        print(video_path)
+        save_image_and_template_from_video(video_path)
 
-    plot_template_matching_for_video(r'..\data\2019-10-03_Digger-hits-bridge-c148\20191003.141001.11foot82b.copy.mp4', skip=1)
-
-    # load_labeled_data()
+    # plot_template_matching_for_video(r'..\data\2019-10-03_Digger-hits-bridge-c148\20191003.141001.11foot82b.copy.mp4', skip=1)
     # plot_kde_and_roc()
