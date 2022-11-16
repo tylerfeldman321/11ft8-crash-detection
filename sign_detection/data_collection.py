@@ -21,7 +21,7 @@ RESULTS_DIR = 'results'
 LABELS_DIR = 'labels'
 
 
-def plot_template_matching_for_video(self, video_path, skip=5, show=True, save=True):
+def plot_template_matching_for_video(video_path, skip=5, show=True, save=True):
     """ Plot template matching strength over time for a provided video """
     sign_detector = SignDetector()
 
@@ -35,15 +35,14 @@ def plot_template_matching_for_video(self, video_path, skip=5, show=True, save=T
         ret, frame = capture.read()
         if frame is None:
             break
+
         if i % skip == 0:
-            continue
+            gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            gray_frame = sign_detector.get_roi_of_frame(gray_frame)
+            max_val, max_loc = sign_detector.template_match(gray_frame)
 
-        gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        gray_frame = sign_detector.get_roi_of_frame(gray_frame)
-        max_val, max_loc = sign_detector.template_match(gray_frame)
-
-        frame_nums.append(i)
-        template_match_values.append(max_val)
+            frame_nums.append(i)
+            template_match_values.append(max_val)
 
     capture.release()
     frame_nums = np.array(frame_nums)
@@ -143,6 +142,8 @@ def plot_kde_and_roc(padding=10, n=10000):
     negative_values = values[labels == 0].reshape(-1, 1)
     positive_values = values[labels == 1].reshape(-1, 1)
 
+    assert positive_values.shape[0] != 0, 'No positive examples in the provided data'
+
     minimum = min(negative_values.min(), positive_values.min())
     maximum = max(negative_values.max(), positive_values.max())
 
@@ -188,6 +189,37 @@ def plot_kde_and_roc(padding=10, n=10000):
     print(f'Area under the curve: {auc}')
 
 
+def load_labeled_data():
+    label_files = glob.glob(os.path.join(LABELS_DIR, "*.npy"))
+
+    aggregated_values = None
+    aggregated_labels = None
+
+    for label_file in label_files:
+        labels = np.load(label_file)
+
+        date = os.path.splitext(os.path.basename(label_file))[0].split('_')[-1]
+        values_path = os.path.join(RESULTS_DIR, f'template_matching_{date}.npy')
+
+        if not os.path.exists(values_path):
+            print(f'{values_path} does not exist, skipping this set of data')
+            continue
+
+        values = np.load(values_path)
+
+        if aggregated_values is None:
+            aggregated_values = values
+        else:
+            aggregated_values = np.hstack((aggregated_values, values))
+
+        if aggregated_labels is None:
+            aggregated_labels = labels
+        else:
+            aggregated_labels = np.hstack((aggregated_labels, labels))
+
+    return aggregated_values, aggregated_labels
+
+
 if __name__ == "__main__":
 
     # sign_on_example = cv2.imread('data/sign_on_example.png', 0)
@@ -203,3 +235,8 @@ if __name__ == "__main__":
     # for video_path in video_paths:
     #     print(video_path)
     #     save_image_and_template_from_video(video_path)
+
+    plot_template_matching_for_video(r'..\data\2019-10-03_Digger-hits-bridge-c148\20191003.141001.11foot82b.copy.mp4', skip=1)
+
+    # load_labeled_data()
+    # plot_kde_and_roc()
