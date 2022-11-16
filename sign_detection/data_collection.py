@@ -17,8 +17,8 @@ from sklearn.neighbors import KernelDensity
 
 
 DATA_DIR = '../data'
-RESULTS_DIR = '../results'
-LABELS_DIR = '../labels'
+RESULTS_DIR = 'results'
+LABELS_DIR = 'labels'
 
 
 def plot_template_matching_for_video(self, video_path, skip=5, show=True, save=True):
@@ -97,17 +97,12 @@ def label_data_from_video_file(video_path):
     num_frames = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
     skip = 0
 
-    values = np.zeros((num_frames))
     labels = np.zeros((num_frames))
 
     for i in tqdm (range(num_frames), desc="Running template matching..."):
         ret, frame = capture.read()
         if frame is None:
             break
-
-        gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        gray_frame = sign_detector.get_roi_of_frame(gray_frame)
-        max_val, max_loc = sign_detector.template_match(gray_frame)
 
         cv2.imshow("frame", cv2.resize(frame, (960, 540)))
 
@@ -123,10 +118,8 @@ def label_data_from_video_file(video_path):
             label = 0  # If pressing a random key, then label will be false
             if key == ord('f'):  # Label frame as false example
                 label = 0
-                print('label false')
             elif key == ord('t'):  # Label frame as true example
                 label = 1
-                print('label true')
             elif key == ord('1'):  # Label the next 1 minutes as false examples
                 skip = fps * 60
                 label = 0
@@ -134,14 +127,12 @@ def label_data_from_video_file(video_path):
                 skip = -1
                 label = 0
 
-        # Collect labels and values
-        values[i] = max_val
+        # Collect labels
         labels[i] = label
 
     date = get_date_of_video_file(video_path)
-    data = np.vstack((values, labels))  # Save with 1st row as values, 2nd row as labels
-    save_path = os.path.join(LABELS_DIR, f'template_matching_{date}')
-    np.save(save_path, data)
+    save_path = os.path.join(LABELS_DIR, f'sign_labels_{date}')
+    np.save(save_path, labels)
 
 
 def plot_kde_and_roc(padding=10, n=10000):
@@ -197,20 +188,6 @@ def plot_kde_and_roc(padding=10, n=10000):
     print(f'Area under the curve: {auc}')
 
 
-def load_labeled_data():
-    data_files = glob.glob(os.path.join(LABELS_DIR, '*.npy'))
-
-    all_data = None
-    for data_file in data_files:
-        data = np.load(data_file)
-        if all_data is None:
-            all_data = data
-        else:
-            all_data = np.hstack((all_data, data))
-    values, labels = all_data[0], all_data[1]
-    return values, labels
-
-
 if __name__ == "__main__":
 
     # sign_on_example = cv2.imread('data/sign_on_example.png', 0)
@@ -221,6 +198,8 @@ if __name__ == "__main__":
 
     # label_data_from_video_file(r'data\2019-10-03_Digger-hits-bridge-c148\20191003.141001.11foot82b.copy.mp4')
     
-    save_image_and_template_from_video(r'..\data\2020-05-14-truck-scrapes-roof-c156\20200514.104001.11foot82b.copy.mp4')
 
-    # plot_kde_and_roc()
+    # video_paths = glob.glob(os.path.join(DATA_DIR, '*', '*.mp4'))
+    # for video_path in video_paths:
+    #     print(video_path)
+    #     save_image_and_template_from_video(video_path)
