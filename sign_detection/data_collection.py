@@ -86,9 +86,11 @@ def save_image_and_template_from_video(video_path):
 
 def get_sign_template_from_image(image):
     """ Get sign template from an image """
-    upper_left = (335, 890)
-    lower_right = (405, 1020)
-    return display_rectangle_of_image(image, upper_left, lower_right)
+    # Templates so far are 70 pixels tall, 130 pixels wide
+    upper_left = (230, 895)  # (335, 890) for anything before and including 20210729
+    lower_right = (300, 1025)  # (405, 1020) for anything before and including 20210729
+    template = display_rectangle_of_image(image, upper_left, lower_right)
+    return template
 
 
 def label_data_from_video_file(video_path):
@@ -232,13 +234,14 @@ if __name__ == "__main__":
     # plot_template_matching_for_video(r'data\2020-02-21_Penske-scrapes-roof-in-snow-c154\20200221.123001.11foot82b.copy.mp4')
     # template_matching_for_all_videos_in_data()
 
-    # label_data_from_video_file(r'data\2019-10-03_Digger-hits-bridge-c148\20191003.141001.11foot82b.copy.mp4')
+    label_data_from_video_file(r'..\data\2019-12-19_Lost-cargo-evening-light-c152\20191219.125001.11foot82b.copy.mp4')
     
 
-    video_paths = glob.glob(os.path.join(DATA_DIR, '*', '*.mp4'))
-    for video_path in video_paths:
-        print(video_path)
-        save_image_and_template_from_video(video_path)
+    # video_paths = glob.glob(os.path.join(DATA_DIR, '*', '*.mp4'))
+    # for video_path in video_paths:
+    #     print(video_path)
+    #     save_image_and_template_from_video(video_path)
 
     # plot_template_matching_for_video(r'..\data\2019-10-03_Digger-hits-bridge-c148\20191003.141001.11foot82b.copy.mp4', skip=1)
     # plot_kde_and_roc()
+    pass
