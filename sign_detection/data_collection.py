@@ -93,6 +93,23 @@ def get_sign_template_from_image(image):
     return template
 
 
+def get_average_template():
+    templates = glob.glob(os.path.join(TEMPLATE_DIR, 'saved_template_*.png'))
+    num_templates = len(templates)
+    print(f'Found {num_templates} templates')
+
+    avg_template = None
+    for template in templates:
+        template_np = cv2.imread(template)
+        if avg_template is None:
+            avg_template = template_np / num_templates
+        else:
+            avg_template += (template_np / num_templates)
+    avg_template_save_path = os.path.join(TEMPLATE_DIR, 'avg_template.png')
+    cv2.imwrite(avg_template_save_path, avg_template)
+    print(f'Saved average template to {avg_template_save_path}')
+
+
 def label_data_from_video_file(video_path):
     """ Label data for a video file """
     sign_detector = SignDetector()
@@ -234,7 +251,7 @@ if __name__ == "__main__":
     # plot_template_matching_for_video(r'data\2020-02-21_Penske-scrapes-roof-in-snow-c154\20200221.123001.11foot82b.copy.mp4')
     # template_matching_for_all_videos_in_data()
 
-    label_data_from_video_file(r'..\data\2019-12-19_Lost-cargo-evening-light-c152\20191219.125001.11foot82b.copy.mp4')
+    # label_data_from_video_file(r'..\data\2019-12-19_Lost-cargo-evening-light-c152\20191219.125001.11foot82b.copy.mp4')
     
 
     # video_paths = glob.glob(os.path.join(DATA_DIR, '*', '*.mp4'))
@@ -244,4 +261,6 @@ if __name__ == "__main__":
 
     # plot_template_matching_for_video(r'..\data\2019-10-03_Digger-hits-bridge-c148\20191003.141001.11foot82b.copy.mp4', skip=1)
     # plot_kde_and_roc()
+    get_average_template()
+
     pass
