@@ -68,7 +68,7 @@ def plot_template_matching_for_video(video_path, skip=5, show=True, save=True):
     np.save(save_path, template_match_values)
 
 
-def template_matching_for_all_videos_in_data(self):
+def template_matching_for_all_videos_in_data():
     """ Save template matching results for all videos in data """
     video_paths = glob.glob(os.path.join(DATA_DIR, '*', '*.mp4'))
     for video_path in video_paths:
@@ -248,8 +248,8 @@ if __name__ == "__main__":
     # sign_on_example = cv2.imread('data/sign_on_example.png', 0)
     # template_match(sign_on_example, display_result=True)
 
-    # plot_template_matching_for_video(r'data\2020-02-21_Penske-scrapes-roof-in-snow-c154\20200221.123001.11foot82b.copy.mp4')
-    # template_matching_for_all_videos_in_data()
+    # plot_template_matching_for_video(r'..\data\2019-10-03_Digger-hits-bridge-c148\20191003.141001.11foot82b.copy.mp4')
+    template_matching_for_all_videos_in_data()
 
     # label_data_from_video_file(r'..\data\2019-12-19_Lost-cargo-evening-light-c152\20191219.125001.11foot82b.copy.mp4')
     
@@ -261,6 +261,6 @@ if __name__ == "__main__":
 
     # plot_template_matching_for_video(r'..\data\2019-10-03_Digger-hits-bridge-c148\20191003.141001.11foot82b.copy.mp4', skip=1)
     # plot_kde_and_roc()
-    get_average_template()
+    # get_average_template()
 
     pass
