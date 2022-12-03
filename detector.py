@@ -2,6 +2,7 @@ import cv2
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
+from skimage.metrics import structural_similarity
 from tqdm import tqdm
 
 
@@ -15,6 +16,7 @@ class Detector:
     REFERENCE_IMAGE = 'data/reference.jpg'
 
     def __init__(self):
+        """ Set default image bounds """
         self.y_min = 0
         self.y_max = 1080
         self.x_min = 0
@@ -22,12 +24,14 @@ class Detector:
 
     def detect(self, file):
         """ Detect the likelihood of a crash in an mp4 file.
-        Returns a likelihood of crash for each frame in the video, normalized from 0 to 1 """
+        Returns likelihood of crash for each frame in the video, between 0 and 1.
+        Lower values indicate higher crash likelihoods. """
         first_frame = self._get_first_frame(file)
         bar_mask = self._find_crash_bar(first_frame)
         # self._play_video(file)
         differences = self._process_video(bar_mask, first_frame, file)
-        self._visualize_differences(differences)
+        self._visualize_differences(differences, file)
+        return differences
 
     def _play_video(self, file, fps=15):
         cap = cv2.VideoCapture(file)
@@ -57,25 +61,10 @@ class Detector:
         return differences
 
     def _calc_difference(self, frame, target):
-        """ Calculate the normalized cross-correlation between the frame and the target. """
-        # Slicing images for faster calculations (huge speedup!)
+        """ Calculate the structural similarity between the frame and the target. """
         t = target[self.y_min:self.y_max, self.x_min:self.x_max]
         f = frame[self.y_min:self.y_max, self.x_min:self.x_max]
-        dist_ncc = np.sum((f - np.mean(f)) * (t - np.mean(t))) / \
-            ((f.size - 1) * np.std(f) * np.std(t))
-        return dist_ncc
-
-    def _visualize_differences(self, diff, fps=15):
-        """ Likelihood of crash for a frame is defined as the normalized difference between the 
-        frame and the previous frame. See _calc_difference for how this difference is calculated.
-        """
-        timestamps = [(1/fps) * i for i in range(len(diff))]
-        normal = (diff-np.min(diff))/(np.max(diff)-np.min(diff))
-        plt.plot(timestamps, normal)
-        plt.title("Normalized Cross Correlation of Video")
-        plt.xlabel("Time (s)")
-        plt.ylabel("Normalized Cross Correlation")
-        plt.show()
+        return structural_similarity(f, t, channel_axis=2)
 
     def _get_first_frame(self, file):
         """ Get first frame of video """
@@ -94,8 +83,9 @@ class Detector:
         """
         try:
             color_mask, contour, rect = self._calc_color_mask(image)
+            print('Found crash bar.')
         except Exception as e:
-            print('Could not find crash bar, falling back to reference image.')
+            print('Could not find crash bar, using crash bar location in reference image.')
             reference = cv2.imread(self.REFERENCE_IMAGE)
             color_mask, contour, rect = self._calc_color_mask(reference)
 
@@ -151,6 +141,16 @@ class Detector:
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
+    def _visualize_differences(self, diff, file, fps=15):
+        """ Plots crash likelihood for each frame """
+        timestamps = [(1/fps) * i for i in range(len(diff))]
+        # normal = (diff-np.min(diff))/(np.max(diff)-np.min(diff))
+        plt.plot(timestamps, diff)
+        plt.title(f'Framewise Structural Similarity in {file}')
+        plt.xlabel('Time (s)')
+        plt.ylabel('Structural Similarity')
+        plt.show()
+
 
 def main(args):
     detector = Detector()
@@ -158,7 +158,7 @@ def main(args):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Detect pixel changes in a video file")
+    parser = argparse.ArgumentParser(description='Detect pixel changes in a video file')
     parser.add_argument('file', help='Path to video file')
     args = parser.parse_args()
     main(args)
