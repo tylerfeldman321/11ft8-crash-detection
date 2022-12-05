@@ -149,13 +149,12 @@ def label_data_from_video_file(video_path):
         labels[i] = label
 
     date = get_date_of_video_file(video_path)
-    save_path = os.path.join(LABELS_DIR, f'sign_labels_{date}')
+    save_path = os.path.join(LABELS_DIR, f'{os.path.basename(os.path.dirname(video_path))}')
     np.save(save_path, labels)
 
 
 def plot_kde_and_roc(padding=0.5, n=10000):
     """ Plot KDE and ROC for labeled data """
-    # TODO: why does p_d not reach 1?
     values, labels = load_labeled_data()
 
     negative_values = values[labels == 0].reshape(-1, 1)
