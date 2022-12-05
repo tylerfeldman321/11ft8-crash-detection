@@ -4,8 +4,11 @@ from dataset import load_dataset
 
 
 class CrashPredictor:
-    def __init__(self):
-        self.clf = SVC(gamma=2, C=1)
+    def __init__(self, clf=None):
+        if clf:
+            self.clf = clf
+        else:
+            self.clf = SVC(gamma=2, C=1)
 
     def train(self, dataset, verbose=True):
         if verbose: print('Training model...')
