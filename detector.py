@@ -2,27 +2,36 @@ import cv2
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
+from skimage.metrics import structural_similarity
 from tqdm import tqdm
 
 
 class Detector:
 
-    LOWER_YELLOW = np.array([0, 70, 180])  # sRGB
-    UPPER_YELLOW = np.array([30, 120, 255])  # sRGB
-    Y_MIN = 440
-    Y_MAX = 500
-    X_MIN = 740
-    X_MAX = 1340
-    THRESHOLD = 100  # This is a hyperparameter that needs to be tuned
+    LOWER_YELLOW = np.array([10, 110, 110])  # HSL
+    UPPER_YELLOW = np.array([70, 255, 255])  # HSL
+    # Expected dimensions of crash bar
+    THRESHOLD_HEIGHT = 15
+    THRESHOLD_WIDTH = 500
+    REFERENCE_IMAGE = 'data/reference.jpg'
+
+    def __init__(self):
+        """ Set default image bounds """
+        self.y_min = 0
+        self.y_max = 1080
+        self.x_min = 0
+        self.x_max = 1920
 
     def detect(self, file):
         """ Detect the likelihood of a crash in an mp4 file.
-        Returns a likelihood of crash for each frame in the video, normalized from 0 to 1 """
+        Returns likelihood of crash for each frame in the video, between 0 and 1.
+        Lower values indicate higher crash likelihoods. """
         first_frame = self._get_first_frame(file)
         bar_mask = self._find_crash_bar(first_frame)
         # self._play_video(file)
         differences = self._process_video(bar_mask, first_frame, file)
-        self._visualize_differences(differences)
+        self._visualize_differences(differences, file)
+        return differences
 
     def _play_video(self, file, fps=15):
         cap = cv2.VideoCapture(file)
@@ -52,25 +61,10 @@ class Detector:
         return differences
 
     def _calc_difference(self, frame, target):
-        """ Calculate the difference between the frame and the target.
-        TODO: Explore different algorithms here. """
-        # Slicing images for faster calculations (3x speedup!)
-        sliced_target = target[self.Y_MIN:self.Y_MAX, self.X_MIN:self.X_MAX]
-        sliced_frame = frame[self.Y_MIN:self.Y_MAX, self.X_MIN:self.X_MAX]
-        # Count how many channels differ by a certain threshold
-        return np.sum(np.square(np.subtract(sliced_frame, sliced_target)) > self.THRESHOLD)
-
-    def _visualize_differences(self, diff, fps=15):
-        """ Likelihood of crash for a frame is defined as the normalized difference between the 
-        frame and the previous frame. See _calc_difference for how this difference is calculated.
-        """
-        timestamps = [(1/fps) * i for i in range(len(diff))]
-        normal = (diff-np.min(diff))/(np.max(diff)-np.min(diff))
-        plt.plot(timestamps, normal)
-        plt.title("Likelihood of Crash")
-        plt.xlabel("Time (s)")
-        plt.ylabel("Likelihood")
-        plt.show()
+        """ Calculate the structural similarity between the frame and the target. """
+        t = target[self.y_min:self.y_max, self.x_min:self.x_max]
+        f = frame[self.y_min:self.y_max, self.x_min:self.x_max]
+        return structural_similarity(f, t, channel_axis=2)
 
     def _get_first_frame(self, file):
         """ Get first frame of video """
@@ -83,24 +77,79 @@ class Detector:
         raise Exception('Could not read first frame.')
 
     def _find_crash_bar(self, image):
-        """ Naively find the crash bar in the image. Assumes the bar is all of the 'yellow' pixels
-        within a pre-defined region. Return a mask corresponding to the bar location.
+        """ Find the crash bar in the image. First, use color masking and contour detection to find
+        a rotated rectangle that bounds the crash bar. Then, calculate a rectangular mask containing
+        the crash bar.
         """
-        rect_mask = np.zeros(image.shape[:2], np.uint8)
-        rect_mask[self.Y_MIN:self.Y_MAX, self.X_MIN:self.X_MAX] = 255
-        color_mask = cv2.inRange(image, self.LOWER_YELLOW, self.UPPER_YELLOW)
+        try:
+            color_mask, contour, rect = self._calc_color_mask(image)
+            print('Found crash bar.')
+        except Exception as e:
+            print('Could not find crash bar, using crash bar location in reference image.')
+            reference = cv2.imread(self.REFERENCE_IMAGE)
+            color_mask, contour, rect = self._calc_color_mask(reference)
+
+        rect_mask = self._calc_rect_mask(image, contour)
         mask = color_mask & rect_mask
         # self._display_mask(mask, image)
         return mask
 
+    def _calc_color_mask(self, image):
+        """ Masks the image by color and finds the rotated rectangle that bounds the crash bar """
+        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)  # Convert image to HSV
+        color_mask = cv2.inRange(hsv, self.LOWER_YELLOW, self.UPPER_YELLOW)
+
+        contours, _ = cv2.findContours(color_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        sorted_contours = sorted(contours, key=cv2.contourArea, reverse=True)
+
+        for contour in sorted_contours:
+            rect = cv2.minAreaRect(contour)
+            if rect[1][0] > self.THRESHOLD_WIDTH and rect[1][1] > self.THRESHOLD_HEIGHT:
+                # self._display_bounding_box(image, rect)
+                return color_mask, contour, rect
+        raise Exception('Could not find crash bar.')
+
+    def _calc_rect_mask(self, image, contour):
+        """ Calculate the rectangular bounding box of the crash bar from a contour."""
+        (x, y, w, h) = cv2.boundingRect(contour)
+
+        self.x_min = x
+        self.x_max = x + w
+        self.y_min = y
+        self.y_max = y + h
+
+        rect_mask = np.zeros(image.shape[:2], np.uint8)
+        rect_mask[self.y_min:self.y_max, self.x_min:self.x_max] = 255
+        return rect_mask
+
+    def _display_bounding_box(self, image, rect):
+        disp = image.copy()
+        box = cv2.boxPoints(rect)
+        box = np.int0(box)
+        cv2.drawContours(disp, [box], 0, (0, 0, 255), 2)
+        cv2.imshow('crash_bar', disp)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
     def _display_mask(self, mask, image):
         """ Display the results of masking an image """
         res = cv2.bitwise_and(image, image, mask=mask)
+
         cv2.imshow('image', image)
         cv2.imshow('mask', mask)
         cv2.imshow('res', res)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
+
+    def _visualize_differences(self, diff, file, fps=15):
+        """ Plots crash likelihood for each frame """
+        timestamps = [(1/fps) * i for i in range(len(diff))]
+        # normal = (diff-np.min(diff))/(np.max(diff)-np.min(diff))
+        plt.plot(timestamps, diff)
+        plt.title(f'Framewise Structural Similarity in {file}')
+        plt.xlabel('Time (s)')
+        plt.ylabel('Structural Similarity')
+        plt.show()
 
 
 def main(args):
@@ -109,7 +158,7 @@ def main(args):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Detect pixel changes in a video file")
+    parser = argparse.ArgumentParser(description='Detect pixel changes in a video file')
     parser.add_argument('file', help='Path to video file')
     args = parser.parse_args()
     main(args)
