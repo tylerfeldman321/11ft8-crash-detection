@@ -28,7 +28,7 @@ class SignDetector:
     def is_sign_on(self, img):
         max_val, max_loc = self.template_match(img)
 
-    def template_match(self, img, method=TEMPLATE_MATCHING_METHODS[0], display_result=False):
+    def template_match(self, img, method=cv2.TM_CCOEFF_NORMED, display_result=False):
         """ Apply template matching to the input image """
         template = self._load_template()
         h, w = template.shape

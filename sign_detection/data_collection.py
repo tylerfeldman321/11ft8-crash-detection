@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import os
 import glob
 from sklearn.neighbors import KernelDensity
+import pandas as pd
 
 
 # TODO: average across all signs to get more generalizable template
@@ -243,16 +244,45 @@ def load_labeled_data():
     return aggregated_values, aggregated_labels
 
 
+def convert_data_to_csv(num_frames=9000, skip=5):
+    df_dict = {}
+
+    df_dict["frame"] = np.arange(0, num_frames, 1)
+
+    sign_detection_results_files = glob.glob(os.path.join(RESULTS_DIR, "*.npy"))
+
+    for sign_detection_results_file in sign_detection_results_files:
+
+        sign_detection_results = np.load(sign_detection_results_file)
+        sign_detection_results_padded = np.repeat(sign_detection_results, skip)
+        sign_detection_results_padded = sign_detection_results_padded[0:num_frames]
+
+        if len(sign_detection_results_padded) < num_frames:
+            num_missing_frames = num_frames - len(sign_detection_results_padded)
+            last_val = sign_detection_results_padded[-1]
+            array_to_append = np.repeat(np.array([last_val]), num_missing_frames)
+            sign_detection_results_padded = np.append(sign_detection_results_padded, array_to_append)
+
+        print(len(sign_detection_results_padded))
+
+        date = os.path.splitext(os.path.basename(sign_detection_results_file))[0].split('_')[-1]
+
+        df_dict[f'{date}'] = list(sign_detection_results_padded)
+
+    df = pd.DataFrame(df_dict)
+    df.to_csv(os.path.join(DATA_DIR, 'sign_detection_results.csv'), index=False)
+
+
 if __name__ == "__main__":
 
     # sign_on_example = cv2.imread('data/sign_on_example.png', 0)
     # template_match(sign_on_example, display_result=True)
 
-    # plot_template_matching_for_video(r'..\data\2019-10-03_Digger-hits-bridge-c148\20191003.141001.11foot82b.copy.mp4')
-    template_matching_for_all_videos_in_data()
+    # plot_template_matching_for_video(r'..\data\2019-12-19_Lost-cargo-evening-light-c152\20191219.125001.11foot82b.copy.mp4')
+    # template_matching_for_all_videos_in_data()
 
     # label_data_from_video_file(r'..\data\2019-12-19_Lost-cargo-evening-light-c152\20191219.125001.11foot82b.copy.mp4')
-    
+
 
     # video_paths = glob.glob(os.path.join(DATA_DIR, '*', '*.mp4'))
     # for video_path in video_paths:
@@ -262,5 +292,7 @@ if __name__ == "__main__":
     # plot_template_matching_for_video(r'..\data\2019-10-03_Digger-hits-bridge-c148\20191003.141001.11foot82b.copy.mp4', skip=1)
     # plot_kde_and_roc()
     # get_average_template()
+
+    convert_data_to_csv()
 
     pass
