@@ -2,6 +2,7 @@
 *.mp4
 *.jpg
 *.png
+*.wav
 sign_detection/results/
 sign_detection/labels/
 **/__pycache__/
