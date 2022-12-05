@@ -160,7 +160,7 @@ def label_data_from_video_file(video_path):
     np.save(save_path, labels)
 
 
-def plot_kde_and_roc(padding=10, n=10000):
+def plot_kde_and_roc(padding=0.5, n=10000):
     """ Plot KDE and ROC for labeled data """
     # TODO: why does p_d not reach 1?
     values, labels = load_labeled_data()
@@ -173,8 +173,8 @@ def plot_kde_and_roc(padding=10, n=10000):
     minimum = min(negative_values.min(), positive_values.min())
     maximum = max(negative_values.max(), positive_values.max())
 
-    kde_h0 = KernelDensity(kernel='gaussian').fit(negative_values)
-    kde_h1 = KernelDensity(kernel='gaussian').fit(positive_values)
+    kde_h0 = KernelDensity(kernel='gaussian', bandwidth=0.01).fit(negative_values)
+    kde_h1 = KernelDensity(kernel='gaussian', bandwidth=0.01).fit(positive_values)
 
     s = np.linspace(minimum-padding, maximum+padding, n)
     dens_h0 = np.exp(kde_h0.score_samples(s.reshape(-1, 1)))
@@ -235,7 +235,6 @@ def load_labeled_data():
 
         values = np.load(values_path)
         values = clean_and_pad_sign_detection_results(values)
-        values = extract_variance_of_moving_window(values)
 
         if aggregated_values is None:
             aggregated_values = values
