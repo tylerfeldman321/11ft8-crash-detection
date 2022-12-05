@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 
 
-# SOUND_DATA_CSV = os.path.join()  # TODO path to csv with sound data
+SOUND_DATA_CSV = os.path.join('data', 'audio.csv')
 SIGN_DETECTION_RESULTS_CSV = os.path.join('data', 'sign_detection_results.csv')
 BAR_SIM_RESULTS_CSV = os.path.join('data', 'ssim.csv')
 LABELS_CSV = os.path.join('data', 'labels.csv')
@@ -18,19 +18,19 @@ def load_dataset(verbose=True, show_results=True):
 
     if verbose: print('Loading dataset...')
 
-    # sound_data_df = pd.read_csv()  # TODO load sound data
     video_names = pd.read_csv(LABELS_CSV).columns.values[1:]
 
-    sign_detection_arr = pd.read_csv(SIGN_DETECTION_RESULTS_CSV)
-    ssim_arr = pd.read_csv(BAR_SIM_RESULTS_CSV)
-    labels = pd.read_csv(LABELS_CSV)
+    sound_data = pd.read_csv(SOUND_DATA_CSV)
+    sign_detection_df = pd.read_csv(SIGN_DETECTION_RESULTS_CSV)
+    ssim_df = pd.read_csv(BAR_SIM_RESULTS_CSV)
+    labels_df = pd.read_csv(LABELS_CSV)
 
     X, y = None, None
 
     for video_name in video_names:
-        sign_detection_results = sign_detection_arr[video_name].values
-        ssim_results = ssim_arr[video_name].values
-        video_labels = labels[video_name].values
+        sign_detection_results = sign_detection_df[video_name].values
+        ssim_results = ssim_df[video_name].values
+        video_labels = labels_df[video_name].values
 
         variance = extract_variance_of_moving_window(sign_detection_results)
 
