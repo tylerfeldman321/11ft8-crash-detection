@@ -29,13 +29,11 @@ def load_dataset(verbose=True, show_results=True):
 
     for video_name in video_names:
         sign_detection_results = sign_detection_df[video_name].values
+        variance = extract_variance_of_moving_window(sign_detection_results)
         ssim_results = ssim_df[video_name].values
         video_labels = labels_df[video_name].values
         sound = sound_df[video_name].values
-
         sound = sound / np.max(sound)
-
-        variance = extract_variance_of_moving_window(sign_detection_results)
 
         if show_results:
             plot_features_for_video(video_name, ssim_results, sign_detection_results, variance, sound, video_labels)
@@ -47,16 +45,14 @@ def load_dataset(verbose=True, show_results=True):
         else:
             X, y = np.hstack((X, video_data)), np.hstack((y, video_labels))
 
+    X, y = X.T, y.T
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
     if verbose:
         print('--------------------------')
         print(f'Loaded dataset with data of shape = {X.shape}, and labels of shape: {y.shape}')
         print(f'Number of samples: {X.shape[0]}, number of features: {X.shape[1]}')
         print(f'Number of true samples: {int(np.sum(y))}')
-
-    X, y = X.T, y.T
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-    if verbose:
         print(f'Train Dataset: {X_train.shape}, Train Labels: {y_train.shape}, Num True Samples: {np.sum(y_train)}')
         print(f'Test Dataset: {X_test.shape}, Test Labels: {y_test.shape}, Num True Samples: {np.sum(y_test)}')
         print('--------------------------')
