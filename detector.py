@@ -22,16 +22,17 @@ class Detector:
         self.x_min = 0
         self.x_max = 1920
 
-    def detect(self, file):
+    def detect(self, file, visualize=False):
         """ Detect the likelihood of a crash in an mp4 file.
         Returns likelihood of crash for each frame in the video, between 0 and 1.
         Lower values indicate higher crash likelihoods. """
         first_frame = self._get_first_frame(file)
         bar_mask = self._find_crash_bar(first_frame)
         # self._play_video(file)
-        differences = self._process_video(bar_mask, first_frame, file)
-        self._visualize_differences(differences, file)
-        return differences
+        differences, fps = self._process_video(bar_mask, first_frame, file)
+        if visualize:
+            self._visualize_differences(differences, file, fps=fps)
+        return np.array(differences), fps
 
     def _play_video(self, file, fps=15):
         cap = cv2.VideoCapture(file)
@@ -49,6 +50,7 @@ class Detector:
         cap = cv2.VideoCapture(file)
         differences = []
         pbar = tqdm(total=int(cap.get(cv2.CAP_PROP_FRAME_COUNT)))
+        fps = cap.get(cv2.CAP_PROP_FPS)
         while cap.isOpened():
             ret, frame = cap.read()
             if frame is None:  # End of video
@@ -58,7 +60,7 @@ class Detector:
             differences.append(self._calc_difference(masked_frame, masked_target))
             masked_target = masked_frame  # Compare to previous frame
         cap.release()
-        return differences
+        return differences, fps
 
     def _calc_difference(self, frame, target):
         """ Calculate the structural similarity between the frame and the target. """
@@ -92,12 +94,17 @@ class Detector:
         rect_mask = self._calc_rect_mask(image, contour)
         mask = color_mask & rect_mask
         # self._display_mask(mask, image)
+        res = cv2.bitwise_and(image, image, mask=mask)
+        # cv2.imwrite('images/final-mask.jpg', res)
         return mask
 
     def _calc_color_mask(self, image):
         """ Masks the image by color and finds the rotated rectangle that bounds the crash bar """
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)  # Convert image to HSV
         color_mask = cv2.inRange(hsv, self.LOWER_YELLOW, self.UPPER_YELLOW)
+        # self._display_mask(color_mask, image)
+        res = cv2.bitwise_and(image, image, mask=color_mask)
+        # cv2.imwrite('images/color-mask.jpg', res)
 
         contours, _ = cv2.findContours(color_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         sorted_contours = sorted(contours, key=cv2.contourArea, reverse=True)
@@ -128,6 +135,7 @@ class Detector:
         box = np.int0(box)
         cv2.drawContours(disp, [box], 0, (0, 0, 255), 2)
         cv2.imshow('crash_bar', disp)
+        # cv2.imwrite('images/contour.jpg', disp)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
@@ -154,7 +162,7 @@ class Detector:
 
 def main(args):
     detector = Detector()
-    detector.detect(args.file)
+    detector.detect(args.file, visualize=True)
 
 
 if __name__ == '__main__':
