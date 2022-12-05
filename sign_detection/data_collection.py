@@ -30,6 +30,8 @@ def plot_template_matching_for_video(video_path, skip=5, show=True, save=True):
     """ Plot template matching strength over time for a provided video """
     sign_detector = SignDetector()
 
+    basename = os.path.basename(os.path.dirname(video_path))
+
     capture = load_video(video_path)
     num_frames = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
 
@@ -60,12 +62,12 @@ def plot_template_matching_for_video(video_path, skip=5, show=True, save=True):
     plt.xlabel('Frame')
     plt.ylabel('Strength of Template Matching')
     if save:
-        plt.savefig(os.path.join(RESULTS_DIR, f'template_matching_{date}.png'))
+        plt.savefig(os.path.join(RESULTS_DIR, f'{basename}.png'))
     if show:
         plt.show()
     plt.close()
 
-    save_path = os.path.join(RESULTS_DIR, f'template_matching_{date}')
+    save_path = os.path.join(RESULTS_DIR, f'{basename}')
     np.save(save_path, template_match_values)
 
 
@@ -265,9 +267,9 @@ def convert_data_to_csv(num_frames=9000, skip=5):
 
         print(len(sign_detection_results_padded))
 
-        date = os.path.splitext(os.path.basename(sign_detection_results_file))[0].split('_')[-1]
+        filename = os.path.splitext(os.path.basename(sign_detection_results_file))[0]
 
-        df_dict[f'{date}'] = list(sign_detection_results_padded)
+        df_dict[f'{filename}'] = list(sign_detection_results_padded)
 
     df = pd.DataFrame(df_dict)
     df.to_csv(os.path.join(DATA_DIR, 'sign_detection_results.csv'), index=False)
