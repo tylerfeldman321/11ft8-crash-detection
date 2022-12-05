@@ -216,6 +216,8 @@ def plot_kde_and_roc(padding=10, n=10000):
 
 
 def load_labeled_data():
+    """ Loads labeled data """
+
     label_files = glob.glob(os.path.join(LABELS_DIR, "*.npy"))
 
     aggregated_values = None
@@ -225,13 +227,15 @@ def load_labeled_data():
         labels = np.load(label_file)
 
         date = os.path.splitext(os.path.basename(label_file))[0].split('_')[-1]
-        values_path = os.path.join(RESULTS_DIR, f'template_matching_{date}.npy')
+        values_path = os.path.join(RESULTS_DIR, f'{os.path.basename(label_file)}')
 
         if not os.path.exists(values_path):
             print(f'{values_path} does not exist, skipping this set of data')
             continue
 
         values = np.load(values_path)
+        values = clean_and_pad_sign_detection_results(values)
+        values = extract_variance_of_moving_window(values)
 
         if aggregated_values is None:
             aggregated_values = values
@@ -247,6 +251,8 @@ def load_labeled_data():
 
 
 def convert_data_to_csv(num_frames=9000, skip=5):
+    """ Converts the .npy files stored after running template_matching_for_all_videos_in_data()
+    into a CSV file with the proper format """
     df_dict = {}
 
     df_dict["frame"] = np.arange(0, num_frames, 1)
@@ -256,23 +262,38 @@ def convert_data_to_csv(num_frames=9000, skip=5):
     for sign_detection_results_file in sign_detection_results_files:
 
         sign_detection_results = np.load(sign_detection_results_file)
-        sign_detection_results_padded = np.repeat(sign_detection_results, skip)
-        sign_detection_results_padded = sign_detection_results_padded[0:num_frames]
-
-        if len(sign_detection_results_padded) < num_frames:
-            num_missing_frames = num_frames - len(sign_detection_results_padded)
-            last_val = sign_detection_results_padded[-1]
-            array_to_append = np.repeat(np.array([last_val]), num_missing_frames)
-            sign_detection_results_padded = np.append(sign_detection_results_padded, array_to_append)
-
-        print(len(sign_detection_results_padded))
+        sign_detection_results = clean_and_pad_sign_detection_results(sign_detection_results, num_frames, skip)
 
         filename = os.path.splitext(os.path.basename(sign_detection_results_file))[0]
 
-        df_dict[f'{filename}'] = list(sign_detection_results_padded)
+        df_dict[f'{filename}'] = list(sign_detection_results)
 
     df = pd.DataFrame(df_dict)
     df.to_csv(os.path.join(DATA_DIR, 'sign_detection_results.csv'), index=False)
+
+
+def clean_and_pad_sign_detection_results(sign_detection_results, num_frames=9000, skip=5):
+    sign_detection_results = np.repeat(sign_detection_results, skip)
+    sign_detection_results = sign_detection_results[0:num_frames]
+
+    if len(sign_detection_results) < num_frames:
+        num_missing_frames = num_frames - len(sign_detection_results)
+        last_val = sign_detection_results[-1]
+        array_to_append = np.repeat(np.array([last_val]), num_missing_frames)
+        sign_detection_results = np.append(sign_detection_results, array_to_append)
+
+    return sign_detection_results
+
+
+def extract_variance_of_moving_window(sign_detection_results, window_size=500):
+    variance = np.zeros(sign_detection_results.shape)
+    for i, sign_detection_val in enumerate(sign_detection_results):
+        if i - window_size < 0:
+            var = np.var(sign_detection_results[0:i+1])
+        else:
+            var = np.var(sign_detection_results[i-window_size:i+1])
+        variance[i] = var
+    return variance
 
 
 if __name__ == "__main__":
@@ -292,9 +313,9 @@ if __name__ == "__main__":
     #     save_image_and_template_from_video(video_path)
 
     # plot_template_matching_for_video(r'..\data\2019-10-03_Digger-hits-bridge-c148\20191003.141001.11foot82b.copy.mp4', skip=1)
-    # plot_kde_and_roc()
+    plot_kde_and_roc()
     # get_average_template()
 
-    convert_data_to_csv()
+    # convert_data_to_csv()
 
     pass
