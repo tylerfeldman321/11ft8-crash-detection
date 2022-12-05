@@ -20,7 +20,7 @@ def load_dataset(verbose=True, show_results=True):
 
     video_names = pd.read_csv(LABELS_CSV).columns.values[1:]
 
-    sound_data = pd.read_csv(SOUND_DATA_CSV)
+    sound_df = pd.read_csv(SOUND_DATA_CSV)
     sign_detection_df = pd.read_csv(SIGN_DETECTION_RESULTS_CSV)
     ssim_df = pd.read_csv(BAR_SIM_RESULTS_CSV)
     labels_df = pd.read_csv(LABELS_CSV)
@@ -31,13 +31,16 @@ def load_dataset(verbose=True, show_results=True):
         sign_detection_results = sign_detection_df[video_name].values
         ssim_results = ssim_df[video_name].values
         video_labels = labels_df[video_name].values
+        sound = sound_df[video_name].values
+
+        sound = sound / np.max(sound)
 
         variance = extract_variance_of_moving_window(sign_detection_results)
 
         if show_results:
-            plot_features_for_video(video_name, ssim_results, sign_detection_results, variance, video_labels)
+            plot_features_for_video(video_name, ssim_results, sign_detection_results, variance, sound, video_labels)
 
-        video_data = np.vstack((variance, ssim_results))  # np.expand_dims(variance, axis=0)  # TODO: add in sound data
+        video_data = np.vstack((variance, ssim_results, sound))  # np.expand_dims(variance, axis=0)  # TODO: add in sound data
 
         if X is None or y is None:
             X, y = video_data, video_labels
@@ -61,12 +64,13 @@ def load_dataset(verbose=True, show_results=True):
     return X_train, X_test, y_train, y_test
 
 
-def plot_features_for_video(video_name, ssim_results, sign_detection_results, variance, video_labels):
+def plot_features_for_video(video_name, ssim_results, sign_detection_results, variance, sound_data, video_labels):
     plt.figure()
     plt.title(video_name)
     plt.plot(np.arange(0, len(ssim_results)), ssim_results, 'k-', label='Bar Similarity')
     plt.plot(np.arange(0, len(sign_detection_results)), sign_detection_results, 'b-', label='Template Matching')
     plt.plot(np.arange(0, len(variance)), variance, 'r-', label='Variance')
+    plt.plot(np.arange(0, len(sound_data)), sound_data, 'c-', label='Sound')
     plt.plot(np.arange(0, len(video_labels)), video_labels, 'g-', label='Label')
     plt.legend(loc='best')
     plt.show()
