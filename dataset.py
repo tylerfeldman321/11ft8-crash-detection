@@ -29,7 +29,7 @@ def load_dataset(verbose=True, show_results=True):
 
     for video_name in video_names:
         sign_detection_results = sign_detection_df[video_name].values
-        variance = extract_variance_of_moving_window(sign_detection_results)
+        variance = extract_moving_window_function(sign_detection_results)
         ssim_results = ssim_df[video_name].values
         video_labels = labels_df[video_name].values
         sound = sound_df[video_name].values
@@ -96,15 +96,15 @@ def plot_dataset(dataset):
     plt.show()
 
 
-def extract_variance_of_moving_window(sign_detection_results, window_size=500):
-    variance = np.zeros(sign_detection_results.shape)
+def extract_moving_window_function(sign_detection_results, func=np.var, window_size=500):
+    results = np.zeros(sign_detection_results.shape)
     for i, sign_detection_val in enumerate(sign_detection_results):
         if i - window_size < 0:
-            var = np.var(sign_detection_results[0:i+1])
+            val = func(sign_detection_results[0:i+1])
         else:
-            var = np.var(sign_detection_results[i-window_size:i+1])
-        variance[i] = var
-    return variance
+            val = func(sign_detection_results[i-window_size:i+1])
+        results[i] = val
+    return results
 
 
 if __name__ == '__main__':
