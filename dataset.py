@@ -14,25 +14,30 @@ BAR_SIM_RESULTS_CSV = os.path.join('data', 'ssim.csv')
 LABELS_CSV = os.path.join('data', 'labels.csv')
 
 
-def load_dataset(verbose=True):
+def load_dataset(verbose=True, show_results=True):
 
     if verbose: print('Loading dataset...')
 
     # sound_data_df = pd.read_csv()  # TODO load sound data
-    sign_detection_arr = pd.read_csv(SIGN_DETECTION_RESULTS_CSV).to_numpy()
-    ssim_arr = pd.read_csv(BAR_SIM_RESULTS_CSV).to_numpy()
-    labels = pd.read_csv(LABELS_CSV).to_numpy()
+    video_names = pd.read_csv(LABELS_CSV).columns.values[1:]
+
+    sign_detection_arr = pd.read_csv(SIGN_DETECTION_RESULTS_CSV)
+    ssim_arr = pd.read_csv(BAR_SIM_RESULTS_CSV)
+    labels = pd.read_csv(LABELS_CSV)
 
     X, y = None, None
 
-    for col_idx in range(1, labels.shape[1]):
-        sign_detection_results = sign_detection_arr[:, col_idx]
-        ssim_results = ssim_arr[:, col_idx]
+    for video_name in video_names:
+        sign_detection_results = sign_detection_arr[video_name].values
+        ssim_results = ssim_arr[video_name].values
+        video_labels = labels[video_name].values
 
-        sign_detection_results = extract_variance_of_moving_window(sign_detection_results)
+        variance = extract_variance_of_moving_window(sign_detection_results)
 
-        video_data = np.vstack((sign_detection_results, ssim_results))  # TODO: add in sound data
-        video_labels = labels[:, col_idx]
+        if show_results:
+            plot_features_for_video(video_name, ssim_results, sign_detection_results, variance, video_labels)
+
+        video_data = np.vstack((variance, ssim_results))  # TODO: add in sound data
 
         if X is None or y is None:
             X, y = video_data, video_labels
@@ -54,14 +59,15 @@ def load_dataset(verbose=True):
     return X_train, X_test, y_train, y_test
 
 
-def get_negative_and_positive_samples(dataset):
-    X_train, X_test, y_train, y_test = dataset
-    X_train_0, y_train_0 = X_train[y_train == 0], y_train[y_train == 0]
-    X_train_1, y_train_1 = X_train[y_train == 1], y_train[y_train == 1]
-    X_test_0, y_test_0 = X_test[y_test == 0], y_test[y_test == 0]
-    X_test_1, y_test_1 = X_test[y_test == 1], y_test[y_test == 1]
-    return X_train_0, y_train_0, X_train_1, y_train_1, X_test_0, y_test_0, X_test_1, y_test_1
-
+def plot_features_for_video(video_name, ssim_results, sign_detection_results, variance, video_labels):
+    plt.figure()
+    plt.title(video_name)
+    plt.plot(np.arange(0, len(ssim_results)), ssim_results, 'k-', label='Bar Similarity')
+    plt.plot(np.arange(0, len(sign_detection_results)), sign_detection_results, 'b-', label='Template Matching')
+    plt.plot(np.arange(0, len(variance)), variance, 'r-', label='Variance')
+    plt.plot(np.arange(0, len(video_labels)), video_labels, 'g-', label='Label')
+    plt.legend(loc='best')
+    plt.show()
 
 
 def plot_dataset(dataset):
@@ -74,22 +80,21 @@ def plot_dataset(dataset):
     # just plot the dataset first
     plt.figure()
     cm = plt.cm.RdBu
-    cm_bright = ListedColormap(["#FF0000", "#0000FF"])
-    plt.scatter(X_train[:, 0], X_train[:, 1], c=y_train, cmap=cm_bright, edgecolors="k")
+    cm_bright = ListedColormap(["#0000FF", "#0000FF"])
+    plt.scatter(X_train[y_train == 1][:, 0], X_train[y_train == 1][:, 1], c=y_train[y_train == 1], cmap=cm_bright, edgecolors="k")
     # Plot the testing points
-    plt.scatter(
-        X_test[:, 0], X_test[:, 1], c=y_test, cmap=cm_bright, alpha=0.6, edgecolors="k"
-    )
-    plt.xlabel('Sign Detection')
+    # plt.scatter(
+    #     X_test[y_test == 1][:, 0], X_test[y_test == 1][:, 1], c=y_test[y_test == 1], cmap=cm_bright, alpha=0.6, edgecolors="k"
+    # )
+    plt.title('Dataset')
+    plt.xlabel('Sign Detection Variance')
     plt.ylabel('Bar Similarity')
     plt.xlim(x_min, x_max)
     plt.ylim(y_min, y_max)
-    plt.xticks(())
-    plt.yticks(())
     plt.show()
 
 
-def extract_variance_of_moving_window(sign_detection_results, window_size=500, show=False):
+def extract_variance_of_moving_window(sign_detection_results, window_size=500):
     variance = np.zeros(sign_detection_results.shape)
     for i, sign_detection_val in enumerate(sign_detection_results):
         if i - window_size < 0:
@@ -97,15 +102,6 @@ def extract_variance_of_moving_window(sign_detection_results, window_size=500, s
         else:
             var = np.var(sign_detection_results[i-window_size:i+1])
         variance[i] = var
-
-    if show:
-        plt.figure()
-        plt.plot(np.arange(0, len(sign_detection_results)), sign_detection_results)
-
-        plt.figure()
-        plt.plot(np.arange(0, len(variance)), variance)
-        plt.show()
-
     return variance
 
 
