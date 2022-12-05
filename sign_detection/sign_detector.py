@@ -2,12 +2,15 @@ import cv2
 import numpy as np
 import os
 import matplotlib.pyplot as plt
-from utils import load_video
 from tqdm import tqdm
 import glob
 
 DATA_DIR = '../data'
-TEMPLATE_FILEPATH = os.path.join(DATA_DIR, 'sign_on_template.png')
+RESULTS_DIR = 'results'
+LABELS_DIR = 'labels'
+TEMPLATE_DIR = 'templates'
+TEMPLATE_FILEPATH = os.path.join(DATA_DIR, 'sign_on_template.png') # os.path.join(DATA_DIR, 'sign_on_template.png')
+
 TEMPLATE_MATCHING_METHODS = [cv2.TM_CCOEFF, cv2.TM_CCOEFF_NORMED, cv2.TM_CCORR,
                              cv2.TM_CCORR_NORMED, cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]
 TM_CCOEFF_THRESHOLD = 1000000
