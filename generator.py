@@ -3,6 +3,9 @@ import numpy as np
 import os
 from detector import Detector
 
+BEFORE_WINDOW = 15
+AFTER_WINDOW = 30
+
 
 def list_dir(rootdir):
     """ Creates a map from video folder (video name) to video filepath """
@@ -31,9 +34,29 @@ def generate_ssim_data(crash_folder, csv_path):
     ssims.to_csv(csv_path, index_label='frame')
 
 
+def fill_ssim(ssim_csv):
+    ssims = pd.read_csv(ssim_csv, index_col='frame')
+    ssims = ssims.fillna(1.0)
+    ssims.to_csv(ssim_csv, index_label='frame')
+
+
+def generate_labels(ssim_csv, timestamps_csv, labels_csv):
+    ssims = pd.read_csv(ssim_csv, index_col='frame')
+    timestamps = pd.read_csv(timestamps_csv)
+    labels_all = pd.DataFrame()
+    for file, frame in zip(timestamps['file'], timestamps['frame']):
+        data = np.zeros(len(ssims))
+        labels = pd.Series(data)
+        labels.iloc[frame - BEFORE_WINDOW:frame + AFTER_WINDOW] = 1.0
+        labels_all[file] = labels
+    labels_all.to_csv(labels_csv, index_label='frame')
+
+
 def main():
-	# Takes about 30 minutes to analyze all 10min videos
-    generate_ssim_data('data/crash samples', 'data/ssim.csv')
+    # Takes about 30 minutes to analyze all 10min videos
+    # generate_ssim_data('data/crash samples', 'data/ssim.csv')
+    # fill_ssim('data/ssim.csv')
+    generate_labels('data/ssim.csv', 'data/timestamps.csv', 'data/labels.csv')
 
 
 if __name__ == '__main__':
