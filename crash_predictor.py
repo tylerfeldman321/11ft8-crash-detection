@@ -13,11 +13,11 @@ class CrashPredictor:
     def train(self, dataset, verbose=True):
         if verbose: print('Training model...')
 
-        X, y, X_train, X_test, y_train, y_test = dataset
+        X_train, X_test, y_train, y_test = dataset
         self.clf.fit(X_train, y_train)
 
     def test(self, dataset, verbose=True):
-        X, y, X_train, X_test, y_train, y_test = dataset
+        X_train, X_test, y_train, y_test = dataset
         score = self.clf.score(X_test, y_test)
 
         negative_samples, negative_labels = X_test[y_test == 0], y_test[y_test == 0]
@@ -36,6 +36,6 @@ class CrashPredictor:
 
 if __name__ == '__main__':
     cp = CrashPredictor()
-    dataset = load_dataset()
+    dataset = load_dataset(show_results=False)
     cp.train(dataset)
     cp.test(dataset, verbose=True)
