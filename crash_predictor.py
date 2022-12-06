@@ -7,7 +7,7 @@ import time
 import pickle
 import os
 from audio_processing.video_to_wav import get_normalized_audio_amplitude
-from detector import Detector
+from crash_bar_processing.crash_bar_ssim import CrashBarSSIM
 from sign_detection.sign_detector import SignDetector
 import argparse
 
@@ -82,6 +82,7 @@ class CrashPredictor:
             print(f'Number of Negative Samples: {len_neg_samples}')
             print(f'Score on Positive Samples: {np.mean(score_positive_samples)}')
             print(f'Number of Postive Samples: {len_pos_samples}')
+
         return predictions
 
     def split_data_by_video(self, X, y, start, length):
@@ -146,7 +147,7 @@ class CrashPredictor:
     def extract_features(self, video_file_path):
         audio_data = get_normalized_audio_amplitude(video_file_path, os.path.splitext(os.path.basename(video_file_path))[0])
         template_matching_variance = SignDetector('data/sign_on_template.png').process_video(video_file_path)
-        ssim, fps = Detector().detect(video_file_path)
+        ssim, fps = CrashBarSSIM().detect(video_file_path)
         data = np.stack((template_matching_variance, ssim, audio_data), axis=1)
         return data
 

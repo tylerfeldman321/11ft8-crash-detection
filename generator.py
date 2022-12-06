@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np
 import os
-from detector import Detector
-from video_to_wav import get_audio_amplitude
+from crash_bar_processing.crash_bar_ssim import CrashBarSSIM
+from audio_processing.video_to_wav import get_audio_amplitude
 
 BEFORE_WINDOW = 15
 AFTER_WINDOW = 30
@@ -30,7 +30,7 @@ def generate_ssim_data(crash_folder, csv_path):
     """ Create a pandas DataFrame where the row index is the frame and the column index is file. 
     The data is the ssim of each frame. Write it to a file after processing all videos. """
     videos = list_dir(crash_folder)
-    detector = Detector()
+    detector = CrashBarSSIM()
     ssims = pd.DataFrame()
     for vid in videos:
         print(f'Calculating ssim for {vid}:')

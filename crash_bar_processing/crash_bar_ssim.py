@@ -6,7 +6,7 @@ from skimage.metrics import structural_similarity
 from tqdm import tqdm
 
 
-class Detector:
+class CrashBarSSIM:
 
     LOWER_YELLOW = np.array([10, 110, 110])  # HSL
     UPPER_YELLOW = np.array([70, 255, 255])  # HSL
@@ -161,7 +161,7 @@ class Detector:
 
 
 def main(args):
-    detector = Detector()
+    detector = CrashBarSSIM()
     detector.detect(args.file, visualize=True)
 
 
