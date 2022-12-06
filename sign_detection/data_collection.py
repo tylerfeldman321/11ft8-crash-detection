@@ -149,7 +149,7 @@ def label_data_from_video_file(video_path):
         labels[i] = label
 
     date = get_date_of_video_file(video_path)
-    save_path = os.path.join(LABELS_DIR, f'{os.path.basename(os.path.dirname(video_path))}')
+    save_path = os.path.join(LABELS_DIR, os.path.basename(os.path.dirname(video_path)))
     np.save(save_path, labels)
 
 
@@ -295,7 +295,7 @@ if __name__ == "__main__":
     # plot_template_matching_for_video(r'..\data\2019-12-19_Lost-cargo-evening-light-c152\20191219.125001.11foot82b.copy.mp4')
     # template_matching_for_all_videos_in_data()
 
-    # label_data_from_video_file(r'..\data\2019-12-19_Lost-cargo-evening-light-c152\20191219.125001.11foot82b.copy.mp4')
+    label_data_from_video_file(r'..\data\2019-12-19_Lost-cargo-evening-light-c152\20191219.125001.11foot82b.copy.mp4')
 
 
     # video_paths = glob.glob(os.path.join(DATA_DIR, '*', '*.mp4'))
@@ -304,7 +304,7 @@ if __name__ == "__main__":
     #     save_image_and_template_from_video(video_path)
 
     # plot_template_matching_for_video(r'..\data\2019-10-03_Digger-hits-bridge-c148\20191003.141001.11foot82b.copy.mp4', skip=1)
-    plot_kde_and_roc()
+    # plot_kde_and_roc()
     # get_average_template()
 
     # convert_data_to_csv()
