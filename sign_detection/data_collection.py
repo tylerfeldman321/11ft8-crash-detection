@@ -286,6 +286,20 @@ def extract_variance_of_moving_window(sign_detection_results, window_size=500):
         variance[i] = var
     return variance
 
+def automatic_data_label():
+    for file in glob.glob(os.path.join(RESULTS_DIR, "*.npy")):
+        dataarray = np.load(file)
+        for i in len(dataarray):
+            plt.clf()
+            plt.figure(1)
+            plt.plot(i, dataarray[i])
+            plt.show()
+            shouldskip = bool(input("Should we skip this? True or False"))
+            if(shouldskip):
+                continue
+            threshold = float(input("What is the threshold?"))
+            np.save(os.path.join(LABELS_DIR, os.path.basename(file)),(dataarray>threshold)*1)
+            
 
 if __name__ == "__main__":
 
@@ -295,7 +309,7 @@ if __name__ == "__main__":
     # plot_template_matching_for_video(r'..\data\2019-12-19_Lost-cargo-evening-light-c152\20191219.125001.11foot82b.copy.mp4')
     # template_matching_for_all_videos_in_data()
 
-    # label_data_from_video_file(r'..\data\2019-12-19_Lost-cargo-evening-light-c152\20191219.125001.11foot82b.copy.mp4')
+    label_data_from_video_file(r'..\data\2019-12-19_Lost-cargo-evening-light-c152\20191219.125001.11foot82b.copy.mp4')
 
 
     # video_paths = glob.glob(os.path.join(DATA_DIR, '*', '*.mp4'))
@@ -304,7 +318,7 @@ if __name__ == "__main__":
     #     save_image_and_template_from_video(video_path)
 
     # plot_template_matching_for_video(r'..\data\2019-10-03_Digger-hits-bridge-c148\20191003.141001.11foot82b.copy.mp4', skip=1)
-    plot_kde_and_roc()
+    # plot_kde_and_roc()
     # get_average_template()
 
     # convert_data_to_csv()
