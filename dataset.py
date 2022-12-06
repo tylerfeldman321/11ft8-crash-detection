@@ -3,9 +3,9 @@ import numpy as np
 import os
 import glob
 import pandas as pd
-from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
+from sign_detection.sign_detector import extract_variance_of_moving_window
 
 
 SOUND_DATA_CSV = os.path.join('data', 'audio.csv')
@@ -41,7 +41,7 @@ def load_dataset(verbose=True, show_results=True):
 
     for video_name in video_names:
         sign_detection_results = sign_detection_df[video_name].values
-        variance = extract_moving_window_function(sign_detection_results)
+        variance = extract_variance_of_moving_window(sign_detection_results)
         ssim_results = ssim_df[video_name].values
         video_labels = labels_df[video_name].values
         sound = sound_df[video_name].values
@@ -116,17 +116,6 @@ def plot_dataset(dataset):
     plt.xlim(x_min, x_max)
     plt.ylim(y_min, y_max)
     plt.show()
-
-
-def extract_moving_window_function(sign_detection_results, func=np.var, window_size=1000):
-    results = np.zeros(sign_detection_results.shape)
-    for i, sign_detection_val in enumerate(sign_detection_results):
-        if i - window_size < 0:
-            val = func(sign_detection_results[0:i+1])
-        else:
-            val = func(sign_detection_results[i-window_size:i+1])
-        results[i] = val
-    return results
 
 
 if __name__ == '__main__':
