@@ -49,7 +49,7 @@ class SignDetector:
 
         plt.subplot(121)
         plt.imshow(res,cmap = 'gray')
-        plt.title('Matching Result')
+        plt.title('Template Matching Result')
         plt.xticks([]), plt.yticks([])
         plt.subplot(122),plt.imshow(img,cmap = 'gray')
         plt.title('Detected Point')
@@ -64,3 +64,9 @@ class SignDetector:
     def get_roi_of_frame(self, frame):
         frame = frame[self.Y_MIN:self.Y_MAX, self.X_MIN:self.X_MAX]
         return frame
+
+
+if __name__ == '__main__':
+    sd = SignDetector()
+    img = cv2.imread(os.path.join(DATA_DIR, 'sign_on_example.png'), cv2.IMREAD_GRAYSCALE)
+    sd.template_match(sd.get_roi_of_frame(img), display_result=True)
