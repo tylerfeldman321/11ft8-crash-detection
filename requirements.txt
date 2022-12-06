@@ -3,3 +3,4 @@ matplotlib
 tqdm
 scikit-learn
 moviepy
+scikit-image
