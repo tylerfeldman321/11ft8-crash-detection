@@ -13,13 +13,6 @@ from sklearn.neighbors import KernelDensity
 import pandas as pd
 
 
-# TODO: average across all signs to get more generalizable template
-    # TODO: get templates for last three or so videos - the region where the sign is located is different for the videos at the end
-    # TODO: write function to average the templates
-
-# TODO: collect data for positive and negative examples and plot histogram of template matching values for the two distributions; see if they are linearly separable
-
-
 DATA_DIR = '../data'
 RESULTS_DIR = 'results'
 LABELS_DIR = 'labels'
@@ -156,13 +149,12 @@ def label_data_from_video_file(video_path):
         labels[i] = label
 
     date = get_date_of_video_file(video_path)
-    save_path = os.path.join(LABELS_DIR, f'sign_labels_{date}')
+    save_path = os.path.join(LABELS_DIR, os.path.basename(os.path.dirname(video_path)))
     np.save(save_path, labels)
 
 
-def plot_kde_and_roc(padding=10, n=10000):
+def plot_kde_and_roc(padding=0.5, n=10000):
     """ Plot KDE and ROC for labeled data """
-    # TODO: why does p_d not reach 1?
     values, labels = load_labeled_data()
 
     negative_values = values[labels == 0].reshape(-1, 1)
@@ -173,8 +165,8 @@ def plot_kde_and_roc(padding=10, n=10000):
     minimum = min(negative_values.min(), positive_values.min())
     maximum = max(negative_values.max(), positive_values.max())
 
-    kde_h0 = KernelDensity(kernel='gaussian').fit(negative_values)
-    kde_h1 = KernelDensity(kernel='gaussian').fit(positive_values)
+    kde_h0 = KernelDensity(kernel='gaussian', bandwidth=0.01).fit(negative_values)
+    kde_h1 = KernelDensity(kernel='gaussian', bandwidth=0.01).fit(positive_values)
 
     s = np.linspace(minimum-padding, maximum+padding, n)
     dens_h0 = np.exp(kde_h0.score_samples(s.reshape(-1, 1)))
@@ -183,10 +175,10 @@ def plot_kde_and_roc(padding=10, n=10000):
     dens_h1 = np.exp(kde_h1.score_samples(s.reshape(-1, 1)))
     plt.fill_between(s, dens_h1, alpha=0.3)
 
-    plt.plot(s, dens_h0, label='Lambda Given H0')
-    plt.plot(s, dens_h1, label='Lambda Given H1')
-    plt.title(f'KDE Score vs. Lambda')
-    plt.xlabel('Lambda')
+    plt.plot(s, dens_h0, label='Negative Examples')
+    plt.plot(s, dens_h1, label='Positive Examples')
+    plt.title(f'KDE Score vs. Normalized Cross Correlation Value')
+    plt.xlabel('Normalized Cross Correlation Value')
     plt.ylabel('Kernel Density Estimation Score')
     plt.legend(loc='best')
     plt.show()
@@ -202,7 +194,7 @@ def plot_kde_and_roc(padding=10, n=10000):
         p_d_list.append(p_d)
 
     plt.plot(p_fa_list, p_d_list)
-    plt.title('ROC Curve')
+    plt.title('ROC Curve for Sign Detection')
     plt.xlabel('Probability of False Alarm')
     plt.ylabel('Probability of Detection')
     plt.show()
@@ -235,7 +227,6 @@ def load_labeled_data():
 
         values = np.load(values_path)
         values = clean_and_pad_sign_detection_results(values)
-        values = extract_variance_of_moving_window(values)
 
         if aggregated_values is None:
             aggregated_values = values
@@ -295,6 +286,20 @@ def extract_variance_of_moving_window(sign_detection_results, window_size=500):
         variance[i] = var
     return variance
 
+def automatic_data_label():
+    for file in glob.glob(os.path.join(RESULTS_DIR, "*.npy")):
+        dataarray = np.load(file)
+        for i in len(dataarray):
+            plt.clf()
+            plt.figure(1)
+            plt.plot(i, dataarray[i])
+            plt.show()
+            shouldskip = bool(input("Should we skip this? True or False"))
+            if(shouldskip):
+                continue
+            threshold = float(input("What is the threshold?"))
+            np.save(os.path.join(LABELS_DIR, os.path.basename(file)),(dataarray>threshold)*1)
+            
 
 if __name__ == "__main__":
 
@@ -304,7 +309,7 @@ if __name__ == "__main__":
     # plot_template_matching_for_video(r'..\data\2019-12-19_Lost-cargo-evening-light-c152\20191219.125001.11foot82b.copy.mp4')
     # template_matching_for_all_videos_in_data()
 
-    # label_data_from_video_file(r'..\data\2019-12-19_Lost-cargo-evening-light-c152\20191219.125001.11foot82b.copy.mp4')
+    label_data_from_video_file(r'..\data\2019-12-19_Lost-cargo-evening-light-c152\20191219.125001.11foot82b.copy.mp4')
 
 
     # video_paths = glob.glob(os.path.join(DATA_DIR, '*', '*.mp4'))
@@ -313,7 +318,7 @@ if __name__ == "__main__":
     #     save_image_and_template_from_video(video_path)
 
     # plot_template_matching_for_video(r'..\data\2019-10-03_Digger-hits-bridge-c148\20191003.141001.11foot82b.copy.mp4', skip=1)
-    plot_kde_and_roc()
+    # plot_kde_and_roc()
     # get_average_template()
 
     # convert_data_to_csv()
