@@ -5,6 +5,7 @@ from sklearn.neural_network import MLPClassifier
 from dataset import load_dataset
 from sklearn.neighbors import KernelDensity
 import seaborn as sns
+import time
 
 
 class CrashPredictor:
@@ -19,6 +20,7 @@ class CrashPredictor:
             self.clf = MLPClassifier(max_iter=500, learning_rate='adaptive')
 
     def train(self, dataset, verbose=True):
+        """ Train the model on a set of extracted features """
         if verbose:
             print('Training model...')
 
@@ -26,6 +28,8 @@ class CrashPredictor:
         self.clf.fit(X_train, y_train)
 
     def test(self, dataset, verbose=True):
+        """ Evaluate the model by running on unseen testing set """
+
         if verbose:
             print('Testing model...')
 
@@ -51,9 +55,10 @@ class CrashPredictor:
             score_positive_samples.append(self.clf.score(positive_samples, positive_labels))
             len_pos_samples += len(positive_samples)
 
-            # cp.plot_predictions(predictions, y, name)
-            timestamps = cp.generate_timestamps(predictions)
-            print(f'Predicted crashes at {timestamps} for video {name}.')
+            self.plot_predictions(predictions, y, name)
+            timestamps = self.generate_timestamps(predictions)
+            times = self.convert_to_hour_minute_second(timestamps)
+            print(f'Predicted crashes at {times} for video {name}.')
 
         if verbose:
             print(f'Overall Score: {score}')
@@ -64,11 +69,13 @@ class CrashPredictor:
         return predictions
 
     def split_data_by_video(self, X, y, start, length):
+        """ Split the data by video """
         split_x = X[start:start + length]
         split_y = y[start:start + length]
         return split_x, split_y
 
     def generate_timestamps(self, predictions):
+        """ Generate timestamps from predictions. Filter out predictions that are close to one another """
         frames = []
         for i, pred in enumerate(predictions):
             if pred == 1.0:  # Predicted crash
@@ -86,9 +93,16 @@ class CrashPredictor:
         return timestamps
 
     def convert_frame_to_timestamp(self, frame_number, fps=15):
+        """ Convert frame number to timestamp in seconds """
         return frame_number/fps
 
+    def convert_to_hour_minute_second(self, timestamps):
+        """ Convert List of timestamps (in seconds) to hour:minute:second format """
+        times = [time.strftime('%H:%M:%S', time.gmtime(timestamp)) for timestamp in timestamps]
+        return times
+
     def plot_predictions(self, predictions, labels, name):
+        """ Plot model predictions and labels """
         plt.figure()
         plt.title(f'Prediction results for {name}')
         plt.plot(np.arange(0, len(predictions)), predictions, label='predictions')
