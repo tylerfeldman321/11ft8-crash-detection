@@ -12,12 +12,6 @@ SOUND_DATA_CSV = os.path.join('data', 'audio.csv')
 SIGN_DETECTION_RESULTS_CSV = os.path.join('data', 'sign_detection_variance.csv')
 BAR_SIM_RESULTS_CSV = os.path.join('data', 'ssim.csv')
 LABELS_CSV = os.path.join('data', 'labels.csv')
-"""
-VIDEOS = ['2021-07-29_roof-peeled-stuck-c171',
-                '2020-02-21_Penske-scrapes-roof-in-snow-c154',
-                '2020-11-13_stuck-fairing_c160',
-                '2020-01-03_Penske-scrapes-roof-c153']
-                """
 TRAIN_PERCENTAGE = 0.75
 
 
