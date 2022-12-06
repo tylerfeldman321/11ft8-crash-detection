@@ -169,11 +169,6 @@ def train_and_test():
     pred = cp.test(dataset, verbose=True)
 
 
-def run_cross_validation():
-    # TODO: do this and get results
-    return
-
-
 def main():
     parser = argparse.ArgumentParser(description='Detect pixel changes in a video file')
     parser.add_argument('file', help='Path to video file')
