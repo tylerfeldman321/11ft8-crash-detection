@@ -67,7 +67,6 @@ def load_dataset(verbose=True, show_results=True):
                 X_test, y_test = np.hstack((X_test, video_data)), np.hstack((y_test, video_labels))
             test_data_names.append(video_name)
             test_data_lengths.append(video_labels.size)
-        print(video_name)
 
     X_train, y_train, X_test, y_test = X_train.T, y_train.T, X_test.T, y_test.T
 
@@ -81,13 +80,15 @@ def load_dataset(verbose=True, show_results=True):
 
 def plot_features_for_video(video_name, ssim_results, sign_detection_results, variance, sound_data, video_labels):
     plt.figure()
-    plt.title(video_name)
+    plt.title(f'Features vs. Frame Number for {video_name}')
     plt.plot(np.arange(0, len(ssim_results)), ssim_results, 'k-', label='Bar Similarity')
     plt.plot(np.arange(0, len(sign_detection_results)),
              sign_detection_results, 'b-', label='Template Matching')
     plt.plot(np.arange(0, len(variance)), variance, 'r-', label='Variance')
     plt.plot(np.arange(0, len(sound_data)), sound_data, 'c-', label='Sound')
     plt.plot(np.arange(0, len(video_labels)), video_labels, 'g-', label='Label')
+    plt.xlabel('Frame')
+    plt.ylabel('Feature Value')
     plt.legend(loc='best')
     plt.show()
 
@@ -117,7 +118,7 @@ def plot_dataset(dataset):
     plt.show()
 
 
-def extract_moving_window_function(sign_detection_results, func=np.var, window_size=500):
+def extract_moving_window_function(sign_detection_results, func=np.var, window_size=1000):
     results = np.zeros(sign_detection_results.shape)
     for i, sign_detection_val in enumerate(sign_detection_results):
         if i - window_size < 0:
