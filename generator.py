@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 from crash_bar_processing.crash_bar_ssim import CrashBarSSIM
-from audio_processing.video_to_wav import get_audio_amplitude
+from audio_processing.video_to_wav import get_normalized_audio_amplitude
 from sign_detection.sign_detector import SignDetector
 
 BEFORE_WINDOW = 15
@@ -49,7 +49,7 @@ def generate_audio_data(crash_folder, csv_path):
     audio = pd.DataFrame()
     for vid in videos:
         print(f'Generating audio data for {vid}:')
-        amplitude = get_audio_amplitude(videos[vid], vid)
+        amplitude = get_normalized_audio_amplitude(videos[vid], vid)
         audio[vid] = pd.Series(amplitude)
     print(audio.head())
     audio = audio.fillna(0.0)
@@ -85,8 +85,8 @@ def main():
     # Takes about 30 minutes to analyze all 10min videos
     # generate_ssim_data(CRASH_FOLDER, SSIM_CSV)
     # generate_labels(SSIM_CSV, TIMESTAMPS_CSV, LABELS_CSV)
-    # generate_audio_data(CRASH_FOLDER, AUDIO_CSV)
-    generate_sign_detection_variance_data(CRASH_FOLDER, SIGN_DETECTION_VARIANCE_CSV)
+    generate_audio_data(CRASH_FOLDER, AUDIO_CSV)
+    # generate_sign_detection_variance_data(CRASH_FOLDER, SIGN_DETECTION_VARIANCE_CSV)
 
 
 if __name__ == '__main__':

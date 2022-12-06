@@ -5,7 +5,6 @@ import glob
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
-from sign_detection.sign_detector import extract_variance_of_moving_window
 
 
 SOUND_DATA_CSV = os.path.join('data', 'audio.csv')
@@ -38,7 +37,6 @@ def load_dataset(verbose=True, show_results=True):
         ssim_results = ssim_df[video_name].values
         video_labels = labels_df[video_name].values
         sound = sound_df[video_name].values
-        sound = sound / np.max(sound)
 
         if show_results:
             plot_features_for_video(video_name=video_name, ssim_results=ssim_results, sign_detection_results=None, variance=variance, sound_data=sound, video_labels=video_labels)
