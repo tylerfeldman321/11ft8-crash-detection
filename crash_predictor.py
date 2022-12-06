@@ -145,6 +145,7 @@ class CrashPredictor:
         print(*times)
 
     def extract_features(self, video_file_path, show=False):
+        # TODO: multiprocessing?
         audio_data = get_normalized_audio_amplitude(video_file_path, os.path.splitext(os.path.basename(video_file_path))[0])
         template_matching_variance = SignDetector().process_video(video_file_path, compute_variance=True)
         ssim, fps = CrashBarSSIM().detect(video_file_path)
@@ -166,6 +167,11 @@ def train_and_test():
     dataset = load_dataset(show_results=False)
     cp.train(dataset)
     pred = cp.test(dataset, verbose=True)
+
+
+def run_cross_validation():
+    # TODO: do this and get results
+    return
 
 
 def main():
