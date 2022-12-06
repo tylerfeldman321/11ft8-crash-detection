@@ -12,20 +12,32 @@ SOUND_DATA_CSV = os.path.join('data', 'audio.csv')
 SIGN_DETECTION_RESULTS_CSV = os.path.join('data', 'sign_detection_results.csv')
 BAR_SIM_RESULTS_CSV = os.path.join('data', 'ssim.csv')
 LABELS_CSV = os.path.join('data', 'labels.csv')
+"""
+VIDEOS = ['2021-07-29_roof-peeled-stuck-c171',
+                '2020-02-21_Penske-scrapes-roof-in-snow-c154',
+                '2020-11-13_stuck-fairing_c160',
+                '2020-01-03_Penske-scrapes-roof-c153']
+                """
+TRAIN_PERCENTAGE = 0.75
 
 
 def load_dataset(verbose=True, show_results=True):
 
-    if verbose: print('Loading dataset...')
-
+    if verbose:
+        print('Loading dataset...')
     video_names = pd.read_csv(LABELS_CSV).columns.values[1:]
+    np.random.seed(0)
+    np.random.shuffle(video_names)
 
     sound_df = pd.read_csv(SOUND_DATA_CSV)
     sign_detection_df = pd.read_csv(SIGN_DETECTION_RESULTS_CSV)
     ssim_df = pd.read_csv(BAR_SIM_RESULTS_CSV)
     labels_df = pd.read_csv(LABELS_CSV)
 
-    X, y = None, None
+    X_train, y_train, X_test, y_test = None, None, None, None
+    num_train_videos = len(video_names) * TRAIN_PERCENTAGE
+    test_data_lengths = []
+    test_data_names = []
 
     for video_name in video_names:
         sign_detection_results = sign_detection_df[video_name].values
@@ -36,35 +48,43 @@ def load_dataset(verbose=True, show_results=True):
         sound = sound / np.max(sound)
 
         if show_results:
-            plot_features_for_video(video_name, ssim_results, sign_detection_results, variance, sound, video_labels)
+            plot_features_for_video(video_name, ssim_results,
+                                    sign_detection_results, variance, sound, video_labels)
 
-        video_data = np.vstack((variance, ssim_results, sound))  # np.expand_dims(variance, axis=0)  # TODO: add in sound data
-
-        if X is None or y is None:
-            X, y = video_data, video_labels
+        video_data = np.vstack((variance, ssim_results, sound))
+        if num_train_videos > 0:
+            if X_train is None or y_train is None:
+                print('Training files:')
+                X_train, y_train = video_data, video_labels
+            else:
+                X_train, y_train = np.hstack((X_train, video_data)), np.hstack((y_train, video_labels))
+            num_train_videos -= 1
         else:
-            X, y = np.hstack((X, video_data)), np.hstack((y, video_labels))
+            if X_test is None or y_test is None:
+                print('Testing files:')
+                X_test, y_test = video_data, video_labels
+            else:
+                X_test, y_test = np.hstack((X_test, video_data)), np.hstack((y_test, video_labels))
+            test_data_names.append(video_name)
+            test_data_lengths.append(video_labels.size)
+        print(video_name)
 
-    X, y = X.T, y.T
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    X_train, y_train, X_test, y_test = X_train.T, y_train.T, X_test.T, y_test.T
 
     if verbose:
-        print('--------------------------')
-        print(f'Loaded dataset with data of shape = {X.shape}, and labels of shape: {y.shape}')
-        print(f'Number of samples: {X.shape[0]}, number of features: {X.shape[1]}')
-        print(f'Number of true samples: {int(np.sum(y))}')
         print(f'Train Dataset: {X_train.shape}, Train Labels: {y_train.shape}, Num True Samples: {np.sum(y_train)}')
         print(f'Test Dataset: {X_test.shape}, Test Labels: {y_test.shape}, Num True Samples: {np.sum(y_test)}')
         print('--------------------------')
 
-    return X_train, X_test, y_train, y_test
+    return X_train, X_test, y_train, y_test, test_data_lengths, test_data_names
 
 
 def plot_features_for_video(video_name, ssim_results, sign_detection_results, variance, sound_data, video_labels):
     plt.figure()
     plt.title(video_name)
     plt.plot(np.arange(0, len(ssim_results)), ssim_results, 'k-', label='Bar Similarity')
-    plt.plot(np.arange(0, len(sign_detection_results)), sign_detection_results, 'b-', label='Template Matching')
+    plt.plot(np.arange(0, len(sign_detection_results)),
+             sign_detection_results, 'b-', label='Template Matching')
     plt.plot(np.arange(0, len(variance)), variance, 'r-', label='Variance')
     plt.plot(np.arange(0, len(sound_data)), sound_data, 'c-', label='Sound')
     plt.plot(np.arange(0, len(video_labels)), video_labels, 'g-', label='Label')
@@ -73,7 +93,7 @@ def plot_features_for_video(video_name, ssim_results, sign_detection_results, va
 
 
 def plot_dataset(dataset):
-    X_train, X_test, y_train, y_test = dataset
+    X_train, X_test, y_train, y_test, _, _ = dataset
 
     X = np.vstack((X_train, X_test))
     x_min, x_max = X[:, 0].min() - 0.5, X[:, 0].max() + 0.5
@@ -83,7 +103,8 @@ def plot_dataset(dataset):
     plt.figure()
     cm = plt.cm.RdBu
     cm_bright = ListedColormap(["#0000FF", "#0000FF"])
-    plt.scatter(X_train[y_train == 1][:, 0], X_train[y_train == 1][:, 1], c=y_train[y_train == 1], cmap=cm_bright, edgecolors="k")
+    plt.scatter(X_train[y_train == 1][:, 0], X_train[y_train == 1][:, 1],
+                c=y_train[y_train == 1], cmap=cm_bright, edgecolors="k")
     # Plot the testing points
     # plt.scatter(
     #     X_test[y_test == 1][:, 0], X_test[y_test == 1][:, 1], c=y_test[y_test == 1], cmap=cm_bright, alpha=0.6, edgecolors="k"
