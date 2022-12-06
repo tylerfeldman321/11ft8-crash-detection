@@ -217,9 +217,10 @@ def load_labeled_data():
 
     for label_file in label_files:
         labels = np.load(label_file)
+        labels = clean_and_pad_sign_detection_results(labels)
 
         date = os.path.splitext(os.path.basename(label_file))[0].split('_')[-1]
-        values_path = os.path.join(RESULTS_DIR, f'{os.path.basename(label_file)}')
+        values_path = os.path.join(RESULTS_DIR, os.path.basename(label_file))
 
         if not os.path.exists(values_path):
             print(f'{values_path} does not exist, skipping this set of data')
@@ -299,12 +300,14 @@ def automatic_data_label():
         plt.show()
         plt.close()
 
-        threshold = float(input("What is the threshold? - "))
-        if threshold == -1:
+        threshold = input("Treshold: ")
+
+        if threshold == '':
             print('Skipped')
             continue
 
-        labels = (dataarray>threshold) * 1
+        threshold = float(threshold)
+        labels = (dataarray > threshold) * 1
         np.save(os.path.join(LABELS_DIR, os.path.basename(file)), labels)
 
         plt.clf()
@@ -313,32 +316,25 @@ def automatic_data_label():
         plt.plot(labels)
         plt.xlabel('Frame')
         plt.show()
-        plt.savefig(os.path.join(LABELS_DIR, f'{os.path.basename(file)}.png'))
         plt.close()
             
 
 if __name__ == "__main__":
-
-    # sign_on_example = cv2.imread('data/sign_on_example.png', 0)
-    # template_match(sign_on_example, display_result=True)
-
     # plot_template_matching_for_video(r'..\data\2019-12-19_Lost-cargo-evening-light-c152\20191219.125001.11foot82b.copy.mp4')
     # template_matching_for_all_videos_in_data()
 
     # label_data_from_video_file(r'..\data\2019-12-19_Lost-cargo-evening-light-c152\20191219.125001.11foot82b.copy.mp4')
-
+    # automatic_data_label()
+    plot_kde_and_roc()
 
     # video_paths = glob.glob(os.path.join(DATA_DIR, '*', '*.mp4'))
     # for video_path in video_paths:
     #     print(video_path)
     #     save_image_and_template_from_video(video_path)
 
-    # plot_template_matching_for_video(r'..\data\2019-10-03_Digger-hits-bridge-c148\20191003.141001.11foot82b.copy.mp4', skip=1)
-    # plot_kde_and_roc()
+    
     # get_average_template()
 
     # convert_data_to_csv()
-
-    automatic_data_label()
 
     pass
