@@ -3,12 +3,10 @@ import matplotlib.pyplot as plt
 from sklearn.svm import SVC
 from sklearn.neural_network import MLPClassifier
 from dataset import load_dataset
-from sklearn.neighbors import KernelDensity
-import seaborn as sns
 import time
 import pickle
 import os
-from video_to_wav import generate_data
+from audio_processing.video_to_wav import get_normalized_audio_amplitude
 from detector import Detector
 from sign_detection.sign_detector import SignDetector
 import argparse
@@ -137,17 +135,20 @@ class CrashPredictor:
         if not video_file_path.endswith('mp4'):
             raise Exception('Provided file is not in mp4 format.')
 
-        audio_data = generate_data(video_file_path, os.path.splitext(os.path.basename(video_file_path))[0])[:9000]
-        audio_data = audio_data / np.max(audio_data)
-        template_matching_variance = SignDetector('data/sign_on_template.png').process_video(video_file_path)
-        ssim, fps = Detector().detect(video_file_path)
-
-        data = np.stack((template_matching_variance, ssim, audio_data), axis=1)
+        data = self.extract_features(video_file_path)
 
         predictions = self.clf.predict(data)
         timestamps = self.generate_timestamps(predictions)
         times = self.convert_to_hour_minute_second(timestamps)
-        print(f'Predicted Crashes: {times}')
+        print('Predicted Crashes: ', end='')
+        print(*times)
+
+    def extract_features(self, video_file_path):
+        audio_data = get_normalized_audio_amplitude(video_file_path, os.path.splitext(os.path.basename(video_file_path))[0])
+        template_matching_variance = SignDetector('data/sign_on_template.png').process_video(video_file_path)
+        ssim, fps = Detector().detect(video_file_path)
+        data = np.stack((template_matching_variance, ssim, audio_data), axis=1)
+        return data
 
 
 def train_all_and_save_model():
@@ -162,12 +163,6 @@ def train_and_test():
     dataset = load_dataset(show_results=False)
     cp.train(dataset)
     pred = cp.test(dataset, verbose=True)
-
-
-def test_loading_model():
-    cp = CrashPredictor()
-    cp.load_model()
-    cp.test(load_dataset(show_results=False), verbose=True)
 
 
 def main():

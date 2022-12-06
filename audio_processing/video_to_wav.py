@@ -4,6 +4,7 @@ import numpy as np
 import wave
 import os
 from pathlib import Path
+import cv2
 
 TEMP_DIR = 'temp'
 
@@ -46,13 +47,22 @@ def plot_signal(time, signal, fname):
     plt.savefig(fname + ".png")
 
 
-def generate_data(video_file, file_name):
+def get_audio_amplitude(video_file, file_name):
+    capture = cv2.VideoCapture(video_file)
+    num_frames = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
+
     if not video_file.endswith('mp4'):
         raise Exception('Provided file is not in mp4 format.')
     video = mpe.VideoFileClip(video_file)
     wav_file = os.path.join(TEMP_DIR, file_name + '.wav')
     video.audio.write_audiofile(wav_file)
-    return process_audio(wav_file)
+    return process_audio(wav_file)[:num_frames]
+
+
+def get_normalized_audio_amplitude(video_file, file_name):
+    audio_data = get_audio_amplitude(video_file, file_name)
+    audio_data = audio_data / np.max(audio_data)
+    return audio_data
 
 
 def main():

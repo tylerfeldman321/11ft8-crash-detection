@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 from detector import Detector
-from video_to_wav import generate_data
+from video_to_wav import get_audio_amplitude
 
 BEFORE_WINDOW = 15
 AFTER_WINDOW = 30
@@ -47,7 +47,7 @@ def generate_audio_data(crash_folder, csv_path):
     audio = pd.DataFrame()
     for vid in videos:
         print(f'Generating audio data for {vid}:')
-        amplitude = generate_data(videos[vid], vid)
+        amplitude = get_audio_amplitude(videos[vid], vid)
         audio[vid] = pd.Series(amplitude)
     print(audio.head())
     audio = audio.fillna(0.0)
