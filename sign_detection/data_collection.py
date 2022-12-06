@@ -149,7 +149,7 @@ def label_data_from_video_file(video_path):
         labels[i] = label
 
     date = get_date_of_video_file(video_path)
-    save_path = os.path.join(LABELS_DIR, f'{os.path.basename(os.path.dirname(video_path))}')
+    save_path = os.path.join(LABELS_DIR, os.path.basename(os.path.dirname(video_path)))
     np.save(save_path, labels)
 
 
