@@ -8,8 +8,8 @@ from pathlib import Path
 TEMP_DIR = 'temp'
 
 
-def process_audio(files: str, output_fps=15, visualize=False):
-    with wave.open(files, 'r') as wav_file:
+def process_audio(file: str, output_fps=15, visualize=False):
+    with wave.open(file, 'r') as wav_file:
         graphsig = wav_file.readframes(-1)  # -1 indicates all or max frames
         graphsig = np.frombuffer(graphsig, dtype="int16")
         f_rate = wav_file.getframerate()  # Get the frame rate
@@ -31,7 +31,7 @@ def process_audio(files: str, output_fps=15, visualize=False):
         avg_signal = np.mean(np.abs(np.array(channels)), axis=0)
         avg_signal_framewise = np.max(avg_signal.reshape(-1, int(output_rate)), axis=1)
         if visualize:
-            plot_signal(time, avg_signal_framewise, files)
+            plot_signal(time, avg_signal_framewise, file)
     return avg_signal_framewise
 
 
