@@ -175,10 +175,10 @@ def plot_kde_and_roc(padding=0.5, n=10000):
     dens_h1 = np.exp(kde_h1.score_samples(s.reshape(-1, 1)))
     plt.fill_between(s, dens_h1, alpha=0.3)
 
-    plt.plot(s, dens_h0, label='Lambda Given H0')
-    plt.plot(s, dens_h1, label='Lambda Given H1')
-    plt.title(f'KDE Score vs. Lambda')
-    plt.xlabel('Lambda')
+    plt.plot(s, dens_h0, label='Negative Examples')
+    plt.plot(s, dens_h1, label='Positive Examples')
+    plt.title(f'KDE Score vs. Normalized Cross Correlation Value')
+    plt.xlabel('Normalized Cross Correlation Value')
     plt.ylabel('Kernel Density Estimation Score')
     plt.legend(loc='best')
     plt.show()
@@ -194,7 +194,7 @@ def plot_kde_and_roc(padding=0.5, n=10000):
         p_d_list.append(p_d)
 
     plt.plot(p_fa_list, p_d_list)
-    plt.title('ROC Curve')
+    plt.title('ROC Curve for Sign Detection')
     plt.xlabel('Probability of False Alarm')
     plt.ylabel('Probability of Detection')
     plt.show()
