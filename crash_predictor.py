@@ -6,6 +6,7 @@ from dataset import load_dataset
 from sklearn.neighbors import KernelDensity
 import seaborn as sns
 import time
+import pickle
 
 
 class CrashPredictor:
@@ -19,13 +20,25 @@ class CrashPredictor:
             # self.clf = SVC(gamma=2, C=1, verbose=True)
             self.clf = MLPClassifier(max_iter=500, learning_rate='adaptive')
 
-    def train(self, dataset, verbose=True):
+    def train(self, dataset, verbose=True, train_all=False):
         """ Train the model on a set of extracted features """
         if verbose:
             print('Training model...')
 
         X_train, X_test, y_train, y_test, _, _ = dataset
-        self.clf.fit(X_train, y_train)
+
+        if train_all:
+            X_all = np.vstack((X_train, X_test))
+            y_all = np.append(y_train, y_test)
+            self.clf.fit(X_all, y_all)
+        else:
+            self.clf.fit(X_train, y_train)
+
+    def save_model(self, save_path='mlp.pkl'):
+        pickle.dump(self.clf, open(save_path, 'wb'))
+
+    def load_model(self, model_path='mlp.pkl'):
+        self.clf = pickle.load(open(model_path, 'rb'))
 
     def test(self, dataset, verbose=True):
         """ Evaluate the model by running on unseen testing set """
@@ -111,6 +124,19 @@ class CrashPredictor:
         plt.xlabel('Frame')
         plt.ylabel('Crash likelihood')
         plt.show()
+
+
+def train_all_and_save_model():
+    cp = CrashPredictor()
+    dataset = load_dataset(show_results=False)
+    cp.train(dataset, train_all=True)
+    cp.save_model()
+
+
+def test_loading_model():
+    cp = CrashPredictor()
+    cp.load_model()
+    pred = cp.test(load_dataset(show_results=False), verbose=True)
 
 
 if __name__ == '__main__':
