@@ -14,12 +14,12 @@ LABELS_CSV = os.path.join('data', 'labels.csv')
 TRAIN_PERCENTAGE = 0.75
 
 
-def load_dataset(verbose=True, show_results=True):
+def load_dataset(verbose=True, show_results=True, seed=0):
 
     if verbose:
         print('Loading dataset...')
     video_names = pd.read_csv(LABELS_CSV).columns.values[1:]
-    np.random.seed(0)
+    np.random.seed(seed)
     np.random.shuffle(video_names)
 
     sound_df = pd.read_csv(SOUND_DATA_CSV)
