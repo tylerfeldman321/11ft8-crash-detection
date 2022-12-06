@@ -9,7 +9,7 @@ DATA_DIR = '../data'
 RESULTS_DIR = 'results'
 LABELS_DIR = 'labels'
 TEMPLATE_DIR = 'templates'
-TEMPLATE_FILEPATH = os.path.join(DATA_DIR, 'sign_on_template.png') # os.path.join(DATA_DIR, 'sign_on_template.png')
+TEMPLATE_FILEPATH = os.path.join('sign_detection', TEMPLATE_DIR, 'sign_on_template.png')
 
 TEMPLATE_MATCHING_METHODS = [cv2.TM_CCOEFF, cv2.TM_CCOEFF_NORMED, cv2.TM_CCORR,
                              cv2.TM_CCORR_NORMED, cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]
@@ -22,11 +22,8 @@ class SignDetector:
     X_MIN = 750
     X_MAX = 1200
 
-    def __init__(self, template_path=None):
-        if template_path is None:
-            self.template = self._load_template()
-        else:
-            self.template = self._load_template(template_path)
+    def __init__(self):
+        self.template = self._load_template(os.path.join(os.getcwd(), TEMPLATE_FILEPATH))
 
     def is_sign_on(self, img):
         max_val, max_loc = self.template_match(img)
@@ -40,13 +37,13 @@ class SignDetector:
             self._display_template_match_result(img, res, min_loc, max_loc, method, w, h)
         return max_val, max_loc
 
-    def process_video(self, video_filepath, skip=5):
+    def process_video(self, video_filepath, compute_variance=True, skip=5):
         capture = cv2.VideoCapture(video_filepath)
         num_frames = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
 
-        template_match_values = np.zeros(num_frames)
+        template_match_values = []
 
-        for i in range(num_frames):
+        for i in tqdm(range(num_frames), f'Processing video: '):
             ret, frame = capture.read()
             if frame is None:
                 break
@@ -56,12 +53,18 @@ class SignDetector:
                 gray_frame = self.get_roi_of_frame(gray_frame)
                 max_val, max_loc = self.template_match(gray_frame)
 
-                template_match_values[i] = max_val
+                template_match_values.append(max_val)
+
+        template_match_values = np.array(template_match_values)
 
         capture.release()
         template_match_values = clean_and_pad_sign_detection_results(template_match_values)
-        variance = extract_variance_of_moving_window(template_match_values)
-        return variance
+        
+        if compute_variance:
+            variance = extract_variance_of_moving_window(template_match_values)
+            return variance
+        else:
+            return template_match_values
 
     def _display_template_match_result(self, img, res, min_loc, max_loc, method, w, h):
         """ Display results of template matching """

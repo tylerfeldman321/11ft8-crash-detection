@@ -9,7 +9,7 @@ from sign_detection.sign_detector import extract_variance_of_moving_window
 
 
 SOUND_DATA_CSV = os.path.join('data', 'audio.csv')
-SIGN_DETECTION_RESULTS_CSV = os.path.join('data', 'sign_detection_results.csv')
+SIGN_DETECTION_RESULTS_CSV = os.path.join('data', 'sign_detection_variance.csv')
 BAR_SIM_RESULTS_CSV = os.path.join('data', 'ssim.csv')
 LABELS_CSV = os.path.join('data', 'labels.csv')
 """
@@ -30,7 +30,7 @@ def load_dataset(verbose=True, show_results=True):
     np.random.shuffle(video_names)
 
     sound_df = pd.read_csv(SOUND_DATA_CSV)
-    sign_detection_df = pd.read_csv(SIGN_DETECTION_RESULTS_CSV)
+    sign_detection_variance_df = pd.read_csv(SIGN_DETECTION_RESULTS_CSV)
     ssim_df = pd.read_csv(BAR_SIM_RESULTS_CSV)
     labels_df = pd.read_csv(LABELS_CSV)
 
@@ -40,16 +40,14 @@ def load_dataset(verbose=True, show_results=True):
     test_data_names = []
 
     for video_name in video_names:
-        sign_detection_results = sign_detection_df[video_name].values
-        variance = extract_variance_of_moving_window(sign_detection_results)
+        variance = sign_detection_variance_df[video_name].values
         ssim_results = ssim_df[video_name].values
         video_labels = labels_df[video_name].values
         sound = sound_df[video_name].values
         sound = sound / np.max(sound)
 
         if show_results:
-            plot_features_for_video(video_name, ssim_results,
-                                    sign_detection_results, variance, sound, video_labels)
+            plot_features_for_video(video_name=video_name, ssim_results=ssim_results, sign_detection_results=None, variance=variance, sound_data=sound, video_labels=video_labels)
 
         video_data = np.vstack((variance, ssim_results, sound))
         if num_train_videos > 0:
@@ -78,15 +76,20 @@ def load_dataset(verbose=True, show_results=True):
     return X_train, X_test, y_train, y_test, test_data_lengths, test_data_names
 
 
-def plot_features_for_video(video_name, ssim_results, sign_detection_results, variance, sound_data, video_labels):
+def plot_features_for_video(video_name, ssim_results=None, sign_detection_results=None, variance=None, sound_data=None, video_labels=None):
     plt.figure()
     plt.title(f'Features vs. Frame Number for {video_name}')
-    plt.plot(np.arange(0, len(ssim_results)), ssim_results, 'k-', label='Bar Similarity')
-    plt.plot(np.arange(0, len(sign_detection_results)),
-             sign_detection_results, 'b-', label='Template Matching')
-    plt.plot(np.arange(0, len(variance)), variance, 'r-', label='Variance')
-    plt.plot(np.arange(0, len(sound_data)), sound_data, 'c-', label='Sound')
-    plt.plot(np.arange(0, len(video_labels)), video_labels, 'g-', label='Label')
+    if ssim_results is not None: 
+        plt.plot(np.arange(0, len(ssim_results)), ssim_results, 'k-', label='Bar Similarity')
+    if sign_detection_results is not None:
+        plt.plot(np.arange(0, len(sign_detection_results)),
+                sign_detection_results, 'b-', label='Template Matching')
+    if variance is not None:
+        plt.plot(np.arange(0, len(variance)), variance, 'r-', label='Variance')
+    if sound_data is not None:
+        plt.plot(np.arange(0, len(sound_data)), sound_data, 'c-', label='Sound')
+    if video_labels is not None:
+        plt.plot(np.arange(0, len(video_labels)), video_labels, 'g-', label='Label')
     plt.xlabel('Frame')
     plt.ylabel('Feature Value')
     plt.legend(loc='best')
