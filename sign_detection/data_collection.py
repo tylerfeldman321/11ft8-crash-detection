@@ -288,17 +288,33 @@ def extract_variance_of_moving_window(sign_detection_results, window_size=500):
 
 def automatic_data_label():
     for file in glob.glob(os.path.join(RESULTS_DIR, "*.npy")):
+        print(file)
         dataarray = np.load(file)
-        for i in len(dataarray):
-            plt.clf()
-            plt.figure(1)
-            plt.plot(i, dataarray[i])
-            plt.show()
-            shouldskip = bool(input("Should we skip this? True or False"))
-            if(shouldskip):
-                continue
-            threshold = float(input("What is the threshold?"))
-            np.save(os.path.join(LABELS_DIR, os.path.basename(file)),(dataarray>threshold)*1)
+
+        plt.clf()
+        plt.figure(1)
+        plt.plot(dataarray)
+        plt.title(file)
+        plt.xlabel('Frame')
+        plt.show()
+        plt.close()
+
+        threshold = float(input("What is the threshold? - "))
+        if threshold == -1:
+            print('Skipped')
+            continue
+
+        labels = (dataarray>threshold) * 1
+        np.save(os.path.join(LABELS_DIR, os.path.basename(file)), labels)
+
+        plt.clf()
+        plt.figure(2)
+        plt.title(file)
+        plt.plot(labels)
+        plt.xlabel('Frame')
+        plt.show()
+        plt.savefig(os.path.join(LABELS_DIR, f'{os.path.basename(file)}.png'))
+        plt.close()
             
 
 if __name__ == "__main__":
@@ -309,7 +325,7 @@ if __name__ == "__main__":
     # plot_template_matching_for_video(r'..\data\2019-12-19_Lost-cargo-evening-light-c152\20191219.125001.11foot82b.copy.mp4')
     # template_matching_for_all_videos_in_data()
 
-    label_data_from_video_file(r'..\data\2019-12-19_Lost-cargo-evening-light-c152\20191219.125001.11foot82b.copy.mp4')
+    # label_data_from_video_file(r'..\data\2019-12-19_Lost-cargo-evening-light-c152\20191219.125001.11foot82b.copy.mp4')
 
 
     # video_paths = glob.glob(os.path.join(DATA_DIR, '*', '*.mp4'))
@@ -322,5 +338,7 @@ if __name__ == "__main__":
     # get_average_template()
 
     # convert_data_to_csv()
+
+    automatic_data_label()
 
     pass
