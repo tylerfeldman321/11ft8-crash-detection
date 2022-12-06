@@ -277,16 +277,6 @@ def clean_and_pad_sign_detection_results(sign_detection_results, num_frames=9000
     return sign_detection_results
 
 
-def extract_variance_of_moving_window(sign_detection_results, window_size=500):
-    variance = np.zeros(sign_detection_results.shape)
-    for i, sign_detection_val in enumerate(sign_detection_results):
-        if i - window_size < 0:
-            var = np.var(sign_detection_results[0:i+1])
-        else:
-            var = np.var(sign_detection_results[i-window_size:i+1])
-        variance[i] = var
-    return variance
-
 def automatic_data_label():
     for file in glob.glob(os.path.join(RESULTS_DIR, "*.npy")):
         print(file)

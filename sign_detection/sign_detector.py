@@ -22,21 +22,46 @@ class SignDetector:
     X_MIN = 750
     X_MAX = 1200
 
-    def __init__(self):
-        pass
+    def __init__(self, template_path=None):
+        if template_path is None:
+            self.template = self._load_template()
+        else:
+            self.template = self._load_template(template_path)
 
     def is_sign_on(self, img):
         max_val, max_loc = self.template_match(img)
 
     def template_match(self, img, method=cv2.TM_CCOEFF_NORMED, display_result=False):
         """ Apply template matching to the input image """
-        template = self._load_template()
-        h, w = template.shape
-        res = cv2.matchTemplate(img, template, method)
+        h, w = self.template.shape
+        res = cv2.matchTemplate(img, self.template, method)
         min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
         if display_result:
             self._display_template_match_result(img, res, min_loc, max_loc, method, w, h)
         return max_val, max_loc
+
+    def process_video(self, video_filepath, skip=5):
+        capture = cv2.VideoCapture(video_filepath)
+        num_frames = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
+
+        template_match_values = np.zeros(num_frames)
+
+        for i in range(num_frames):
+            ret, frame = capture.read()
+            if frame is None:
+                break
+
+            if i % skip == 0:
+                gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                gray_frame = self.get_roi_of_frame(gray_frame)
+                max_val, max_loc = self.template_match(gray_frame)
+
+                template_match_values[i] = max_val
+
+        capture.release()
+        template_match_values = clean_and_pad_sign_detection_results(template_match_values)
+        variance = extract_variance_of_moving_window(template_match_values)
+        return variance
 
     def _display_template_match_result(self, img, res, min_loc, max_loc, method, w, h):
         """ Display results of template matching """
@@ -56,14 +81,38 @@ class SignDetector:
         plt.xticks([]), plt.yticks([])
         plt.show()
 
-    def _load_template(self):
+    def _load_template(self, path=TEMPLATE_FILEPATH):
         """ Load template as grayscale imgae """
-        sign_on_template = cv2.imread(TEMPLATE_FILEPATH, cv2.IMREAD_GRAYSCALE)
+        sign_on_template = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
         return sign_on_template
 
     def get_roi_of_frame(self, frame):
         frame = frame[self.Y_MIN:self.Y_MAX, self.X_MIN:self.X_MAX]
         return frame
+
+
+def extract_variance_of_moving_window(sign_detection_results, window_size=1000):
+    variance = np.zeros(sign_detection_results.shape)
+    for i, sign_detection_val in enumerate(sign_detection_results):
+        if i - window_size < 0:
+            var = np.var(sign_detection_results[0:i+1])
+        else:
+            var = np.var(sign_detection_results[i-window_size:i+1])
+        variance[i] = var
+    return variance
+
+
+def clean_and_pad_sign_detection_results(sign_detection_results, num_frames=9000, skip=5):
+    sign_detection_results = np.repeat(sign_detection_results, skip)
+    sign_detection_results = sign_detection_results[0:num_frames]
+
+    if len(sign_detection_results) < num_frames:
+        num_missing_frames = num_frames - len(sign_detection_results)
+        last_val = sign_detection_results[-1]
+        array_to_append = np.repeat(np.array([last_val]), num_missing_frames)
+        sign_detection_results = np.append(sign_detection_results, array_to_append)
+
+    return sign_detection_results
 
 
 if __name__ == '__main__':
