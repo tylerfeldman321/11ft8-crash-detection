@@ -32,19 +32,26 @@ def plot_precision_recall_for_varying_thresolds():
     
     precisions = np.zeros(len(probability_thresholds))
     recalls = np.zeros(len(probability_thresholds))
+    f1_scores = np.zeros(len(probability_thresholds))
 
     for i, probability_threshold in enumerate(probability_thresholds):
         p, r = run_cross_validation(probability_threshold, num_folds=10)
         precisions[i] = p
         recalls[i] = r
+        f1_scores[i] = 2 * (p * r) / (p + r)
 
     plt.plot(probability_thresholds, precisions, label='Average Precision')
     plt.plot(probability_thresholds, recalls, label='Average Recall')
-    plt.title('Precision and Recall vs. Decision Threshold')
+    plt.plot(probability_thresholds, f1_scores, label='F1 Score')
+    plt.title('Precision/Recall/F1 vs. Decision Threshold')
     plt.xlabel('Probability Decision Threshold')
-    plt.ylabel('Precision/Recall')
+    plt.ylabel('Precision/Recall/F1')
     plt.legend(loc='best')
     plt.show()
+
+    np.save('precision.npy', precisions)
+    np.save('recall.npy', recalls)
+    np.save('f1.npy', f1_scores)
 
 
 def train_all_and_save_model():
