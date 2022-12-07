@@ -6,7 +6,7 @@ from dataset import load_dataset, plot_features_for_video, load_timestamps
 import time
 import pickle
 import os
-from audio_processing.video_to_wav import get_normalized_audio_amplitude
+from audio_processing.audio_processing import get_normalized_audio_amplitude
 from crash_bar_processing.crash_bar_ssim import CrashBarSSIM
 from sign_detection.sign_detector import SignDetector
 import argparse

@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 from crash_bar_processing.crash_bar_ssim import CrashBarSSIM
-from audio_processing.video_to_wav import get_normalized_audio_amplitude
+from audio_processing.audio_processing import get_normalized_audio_amplitude
 from sign_detection.sign_detector import SignDetector
 
 BEFORE_WINDOW = 15
