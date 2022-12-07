@@ -156,16 +156,23 @@ class CrashPredictor:
 
     def extract_features(self, video_file_path, show=False):
         # TODO: multiprocessing?
-        audio_data = get_normalized_audio_amplitude(video_file_path, os.path.splitext(os.path.basename(video_file_path))[0])
-        template_matching_variance = SignDetector().process_video(video_file_path, compute_variance=True)
+        audio_data = get_normalized_audio_amplitude(
+            video_file_path, os.path.splitext(os.path.basename(video_file_path))[0])
+        print(audio_data.shape)
+        template_matching_variance = SignDetector().process_video(video_file_path,
+                                                                  compute_variance=True)
+        print(template_matching_variance.shape)
         ssim, fps = CrashBarSSIM().detect(video_file_path)
+        print(ssim.shape)
         data = np.stack((template_matching_variance, ssim, audio_data), axis=1)
         if show:
-            plot_features_for_video(video_file_path, ssim_results=ssim, variance=template_matching_variance, sound_data=audio_data)
+            plot_features_for_video(video_file_path, ssim_results=ssim,
+                                    variance=template_matching_variance, sound_data=audio_data)
         return data
 
     def evaluate_performance(self, dataset, probability_threshold=0.5, verbose=False):
-        pred_crash_frames_dict = self.test(dataset, probability_threshold=probability_threshold, verbose=verbose)
+        pred_crash_frames_dict = self.test(
+            dataset, probability_threshold=probability_threshold, verbose=verbose)
         _, _, _, _, _, test_data_names = dataset
         true_crash_frames_dict = load_timestamps()
 

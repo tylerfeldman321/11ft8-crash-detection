@@ -108,6 +108,8 @@ class CrashBarSSIM:
 
         contours, _ = cv2.findContours(color_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         sorted_contours = sorted(contours, key=cv2.contourArea, reverse=True)
+        # cv2.imwrite('images/good.jpg', image)
+        # self._display_contours(res, sorted_contours)
 
         for contour in sorted_contours:
             rect = cv2.minAreaRect(contour)
@@ -128,6 +130,18 @@ class CrashBarSSIM:
         rect_mask = np.zeros(image.shape[:2], np.uint8)
         rect_mask[self.y_min:self.y_max, self.x_min:self.x_max] = 255
         return rect_mask
+
+    def _display_contours(self, image, contours):
+        disp = image.copy()
+        for contour in contours:
+            rect = cv2.minAreaRect(contour)
+            box = cv2.boxPoints(rect)
+            box = np.int0(box)
+            cv2.drawContours(disp, [box], 0, (0, 0, 255), 2)
+        cv2.imshow('contours', disp)
+        # cv2.imwrite('images/good-contours.jpg', disp)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
     def _display_bounding_box(self, image, rect):
         disp = image.copy()
