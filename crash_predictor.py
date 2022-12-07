@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.svm import SVC
 from sklearn.neural_network import MLPClassifier
-from dataset import load_dataset, plot_features_for_video
+from dataset import load_dataset, plot_features_for_video, load_timestamps
 import time
 import pickle
 import os
@@ -15,6 +15,7 @@ import argparse
 class CrashPredictor:
 
     THRESHOLD = 100
+    PRED_CORRECTNESS_THRESHOLD = 50  # In num of frames
 
     def __init__(self, clf=None):
         if clf:
@@ -23,7 +24,7 @@ class CrashPredictor:
             # self.clf = SVC(gamma=2, C=1, verbose=True)
             self.clf = MLPClassifier(max_iter=500, learning_rate='adaptive')
 
-    def train(self, dataset, verbose=True, train_all=False):
+    def train(self, dataset, verbose=False, train_all=False):
         """ Train the model on a set of extracted features """
         if verbose:
             print('Training model...')
@@ -43,7 +44,7 @@ class CrashPredictor:
     def load_model(self, model_path='mlp.pkl'):
         self.clf = pickle.load(open(model_path, 'rb'))
 
-    def test(self, dataset, verbose=True):
+    def test(self, dataset, show_results=False, verbose=False):
         """ Evaluate the model by running on unseen testing set """
 
         if verbose:
@@ -55,6 +56,9 @@ class CrashPredictor:
         score_positive_samples = []
         len_neg_samples = 0
         len_pos_samples = 0
+
+        frame_prediction_dict = {}
+
         # predictions = self.clf.predict_proba(X_test)[:, 1]
         for length, name in zip(test_data_lengths, test_data_names):
             X, y = self.split_data_by_video(X_test, y_test, start, length)
@@ -71,10 +75,17 @@ class CrashPredictor:
             score_positive_samples.append(self.clf.score(positive_samples, positive_labels))
             len_pos_samples += len(positive_samples)
 
-            self.plot_predictions(predictions, y, name)
-            timestamps = self.generate_timestamps(predictions)
+            if show_results:
+                self.plot_predictions(predictions, y, name)
+
+            frames_predictions = self.generate_timestamps(predictions)
+            timestamps = [self.convert_frame_to_timestamp(frame) for frame in frames_predictions]
             times = self.convert_to_hour_minute_second(timestamps)
-            print(f'Predicted crashes at {times} for video {name}.')
+
+            if verbose:
+                print(f'Predicted crashes at {times} for video {name}.')
+
+            frame_prediction_dict[name] = frames_predictions
 
         if verbose:
             print(f'Overall Score: {score}')
@@ -83,7 +94,7 @@ class CrashPredictor:
             print(f'Score on Positive Samples: {np.mean(score_positive_samples)}')
             print(f'Number of Postive Samples: {len_pos_samples}')
 
-        return predictions
+        return frame_prediction_dict
 
     def split_data_by_video(self, X, y, start, length):
         """ Split the data by video """
@@ -105,9 +116,7 @@ class CrashPredictor:
                     flag = False
             if flag:
                 copy.append(frame)
-
-        timestamps = [self.convert_frame_to_timestamp(frame) for frame in copy]
-        return timestamps
+        return copy
 
     def convert_frame_to_timestamp(self, frame_number, fps=15):
         """ Convert frame number to timestamp in seconds """
@@ -154,6 +163,46 @@ class CrashPredictor:
             plot_features_for_video(video_file_path, ssim_results=ssim, variance=template_matching_variance, sound_data=audio_data)
         return data
 
+    def evaluate_performance(self, dataset, verbose=False):
+        pred_crash_frames_dict = self.test(dataset, verbose=False)
+        _, _, _, _, _, test_data_names = dataset
+        true_crash_frames_dict = load_timestamps()
+
+        tp, fp, fn = 0, 0, 0
+
+        # Calculate precision and recall
+        for video_name in test_data_names:
+            pred_crash_frames = pred_crash_frames_dict[video_name]
+            true_crash_frame = true_crash_frames_dict[video_name]  # Assuming only 1 true crash
+
+            val = find_nearest(pred_crash_frames, true_crash_frame)
+
+            # If timestamp is not near the label, it is a false positive
+            # If timestamp is near label, true positive
+            # If no timestamp near label, false negative
+            fp += len(pred_crash_frames)
+            if np.abs(val - true_crash_frame) < self.PRED_CORRECTNESS_THRESHOLD:
+                tp += 1
+                fp -= 1
+            else:
+                fn += 1
+
+        precision = tp / (tp + fp)
+        recall = tp / (tp + fn)
+
+        if verbose:
+            print(f'Precision: {precision}, Recall: {recall}')
+
+        return precision, recall
+
+
+
+
+def find_nearest(array, value):
+    array = np.asarray(array)
+    idx = (np.abs(array - value)).argmin()
+    return array[idx]
+
 
 def train_all_and_save_model():
     cp = CrashPredictor()
@@ -166,7 +215,7 @@ def train_and_test():
     cp = CrashPredictor()
     dataset = load_dataset(show_results=False)
     cp.train(dataset)
-    pred = cp.test(dataset, verbose=True)
+    cp.test(dataset, verbose=True)
 
 
 def main():

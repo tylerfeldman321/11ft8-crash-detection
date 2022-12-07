@@ -5,6 +5,7 @@ import glob
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
+from generator import TIMESTAMPS_CSV
 
 
 SOUND_DATA_CSV = os.path.join('data', 'audio.csv')
@@ -14,10 +15,11 @@ LABELS_CSV = os.path.join('data', 'labels.csv')
 TRAIN_PERCENTAGE = 0.75
 
 
-def load_dataset(verbose=True, show_results=True, seed=0):
+def load_dataset(verbose=False, show_results=True, seed=0):
 
     if verbose:
         print('Loading dataset...')
+
     video_names = pd.read_csv(LABELS_CSV).columns.values[1:]
     np.random.seed(seed)
     np.random.shuffle(video_names)
@@ -44,14 +46,12 @@ def load_dataset(verbose=True, show_results=True, seed=0):
         video_data = np.vstack((variance, ssim_results, sound))
         if num_train_videos > 0:
             if X_train is None or y_train is None:
-                print('Training files:')
                 X_train, y_train = video_data, video_labels
             else:
                 X_train, y_train = np.hstack((X_train, video_data)), np.hstack((y_train, video_labels))
             num_train_videos -= 1
         else:
             if X_test is None or y_test is None:
-                print('Testing files:')
                 X_test, y_test = video_data, video_labels
             else:
                 X_test, y_test = np.hstack((X_test, video_data)), np.hstack((y_test, video_labels))
@@ -86,6 +86,14 @@ def plot_features_for_video(video_name, ssim_results=None, sign_detection_result
     plt.ylabel('Feature Value')
     plt.legend(loc='best')
     plt.show()
+
+
+def load_timestamps():
+    timestamps_df = pd.read_csv(TIMESTAMPS_CSV)
+    timestamps_dict = {}
+    for file, frame in zip(timestamps_df['file'], timestamps_df['frame']):
+        timestamps_dict[file] = frame
+    return timestamps_dict
 
 
 def plot_dataset(dataset):
