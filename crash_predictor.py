@@ -21,7 +21,6 @@ class CrashPredictor:
         if clf:
             self.clf = clf
         else:
-            # self.clf = SVC(gamma=2, C=1, verbose=True)
             self.clf = MLPClassifier(max_iter=500, learning_rate='adaptive')
 
     def train(self, dataset, verbose=False, train_all=False):
@@ -140,6 +139,7 @@ class CrashPredictor:
         plt.show()
 
     def __call__(self, *args):
+        """ Run inference on a video file """
         video_file_path = args[0]
         if not os.path.exists(video_file_path):
             raise Exception(f'Provided video does not exist: {video_file_path}')
@@ -155,6 +155,7 @@ class CrashPredictor:
         print(*times)
 
     def extract_features(self, video_file_path, show=False):
+        """ Extract features from a video file """
         # TODO: multiprocessing?
         audio_data = get_normalized_audio_amplitude(
             video_file_path, os.path.splitext(os.path.basename(video_file_path))[0])
@@ -171,6 +172,16 @@ class CrashPredictor:
         return data
 
     def evaluate_performance(self, dataset, probability_threshold=0.5, verbose=False):
+        """ Evaluate the performance of the model
+
+        Args:
+            dataset (_type_): _description_
+            probability_threshold (float, optional): Threshold above which to declare . Defaults to 0.5.
+            verbose (bool, optional): Whether to print out detailed results. Defaults to False.
+
+        Returns:
+            Tuple: precision, recall
+        """
         pred_crash_frames_dict = self.test(
             dataset, probability_threshold=probability_threshold, verbose=verbose)
         _, _, _, _, _, test_data_names = dataset
@@ -201,10 +212,29 @@ class CrashPredictor:
         return precision, recall
 
     def found_true_crash(self, pred_crash_frames, true_crash_frame):
+        """ Finds if we've found the true crash in the video
+
+        Args:
+            pred_crash_frames (List): _description_
+            true_crash_frame (int): Frame on which the crash occurs
+
+        Returns:
+            bool: True if a prediction is within a threshold from the true crash frame
+        """
         return np.abs(find_nearest(pred_crash_frames, true_crash_frame) - true_crash_frame) < self.PRED_CORRECTNESS_THRESHOLD
 
 
 def compute_precision_and_recall(tp, fp, fn):
+    """ Compute precision and recall
+
+    Args:
+        tp (int): Number of true positives
+        fp (int): Number of false positives
+        fn (int): Number of false negatives
+
+    Returns:
+        Tuple: (precision, recall)
+    """
     if (tp + fp) != 0:
         precision = tp / (tp + fp)
     else:
@@ -214,6 +244,15 @@ def compute_precision_and_recall(tp, fp, fn):
 
 
 def find_nearest(array, value):
+    """ Finds nearest element in array to the value
+
+    Args:
+        array (ndarray): Numpy array
+        value (float): Target value
+
+    Returns:
+        float: Element in array that is closest to value
+    """
     array = np.asarray(array)
     idx = (np.abs(array - value)).argmin()
     return array[idx]

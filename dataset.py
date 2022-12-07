@@ -16,6 +16,7 @@ TRAIN_PERCENTAGE = 0.75
 
 
 def load_dataset(verbose=False, show_results=True, seed=0):
+    """ Loads the dataset and labels into a train and test split """
 
     if verbose:
         print('Loading dataset...')
@@ -69,6 +70,7 @@ def load_dataset(verbose=False, show_results=True, seed=0):
 
 
 def plot_features_for_video(video_name, ssim_results=None, sign_detection_results=None, variance=None, sound_data=None, video_labels=None):
+    """ Plot extracted features over time """
     plt.figure()
     plt.title(f'Features vs. Frame Number for {video_name}')
     if ssim_results is not None: 
@@ -89,6 +91,7 @@ def plot_features_for_video(video_name, ssim_results=None, sign_detection_result
 
 
 def load_timestamps():
+    """ Loads the frame timestamp labels as a dictionary indexed by video name """
     timestamps_df = pd.read_csv(TIMESTAMPS_CSV)
     timestamps_dict = {}
     for file, frame in zip(timestamps_df['file'], timestamps_df['frame']):

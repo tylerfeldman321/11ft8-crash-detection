@@ -28,6 +28,7 @@ def run_cross_validation(probability_threshold=0.5, num_folds=50):
 
 
 def plot_precision_recall_for_varying_thresolds():
+    """ Compute precision, recall, and f1 for a range of decision thresholds """
     probability_thresholds = np.linspace(0, 1.0, 51)
     
     precisions = np.zeros(len(probability_thresholds))
