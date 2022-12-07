@@ -15,6 +15,7 @@ TEMPLATE_MATCHING_METHODS = [cv2.TM_CCOEFF, cv2.TM_CCOEFF_NORMED, cv2.TM_CCORR,
                              cv2.TM_CCORR_NORMED, cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]
 TM_CCOEFF_THRESHOLD = 1000000
 
+
 class SignDetector:
 
     Y_MIN = 250
@@ -58,8 +59,9 @@ class SignDetector:
         template_match_values = np.array(template_match_values)
 
         capture.release()
-        template_match_values = clean_and_pad_sign_detection_results(template_match_values)
-        
+        template_match_values = clean_and_pad_sign_detection_results(
+            template_match_values, num_frames=num_frames)
+
         if compute_variance:
             variance = extract_variance_of_moving_window(template_match_values)
             return variance
@@ -76,10 +78,10 @@ class SignDetector:
         cv2.rectangle(img, top_left, bottom_right, 255, 2)
 
         plt.subplot(121)
-        plt.imshow(res,cmap = 'gray')
+        plt.imshow(res, cmap='gray')
         plt.title('Template Matching Result')
         plt.xticks([]), plt.yticks([])
-        plt.subplot(122),plt.imshow(img,cmap = 'gray')
+        plt.subplot(122), plt.imshow(img, cmap='gray')
         plt.title('Detected Point')
         plt.xticks([]), plt.yticks([])
         plt.show()

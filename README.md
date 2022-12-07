@@ -11,7 +11,7 @@ To set up the repository, clone the repo, create an environment, and run `pip in
 To get timestamps of potential crashes using image discrepancies across the crash bar, run:
 
 ```bash
-python3 crash_predictor <video_file.mp4>
+python3 crash_predictor.py <video_file.mp4>
 ```
 
 ### Generating Data for Processing
