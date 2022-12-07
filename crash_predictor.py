@@ -164,7 +164,7 @@ class CrashPredictor:
         return data
 
     def evaluate_performance(self, dataset, verbose=False):
-        pred_crash_frames_dict = self.test(dataset, verbose=False)
+        pred_crash_frames_dict = self.test(dataset, verbose=verbose)
         _, _, _, _, _, test_data_names = dataset
         true_crash_frames_dict = load_timestamps()
 
