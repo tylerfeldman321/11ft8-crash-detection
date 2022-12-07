@@ -38,6 +38,10 @@ class SignDetector:
             self._display_template_match_result(img, res, min_loc, max_loc, method, w, h)
         return max_val, max_loc
 
+    def process_video_multiprocess(self, video_filepath, q, compute_variance=True, skip=5):
+        sign_detection_results = self.process_video(video_filepath, compute_variance, skip)
+        q.put(sign_detection_results)
+
     def process_video(self, video_filepath, compute_variance=True, skip=5):
         capture = cv2.VideoCapture(video_filepath)
         num_frames = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))

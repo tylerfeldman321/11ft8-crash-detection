@@ -65,6 +65,11 @@ def get_normalized_audio_amplitude(video_file, file_name):
     return audio_data
 
 
+def get_normalized_audio_amplitude_multiprocess(video_file, file_name, q):
+    audio_data = get_normalized_audio_amplitude(video_file, file_name)
+    q.put(audio_data)
+
+
 def main():
     directory = "data/crash samples/2021-07-12_bump-c169"
 

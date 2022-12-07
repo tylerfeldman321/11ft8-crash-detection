@@ -6,10 +6,12 @@ from dataset import load_dataset, plot_features_for_video, load_timestamps
 import time
 import pickle
 import os
-from audio_processing.video_to_wav import get_normalized_audio_amplitude
+from audio_processing.video_to_wav import get_normalized_audio_amplitude, get_normalized_audio_amplitude_multiprocess
 from crash_bar_processing.crash_bar_ssim import CrashBarSSIM
 from sign_detection.sign_detector import SignDetector
 import argparse
+from multiprocessing import Process, Array, Queue
+import cv2
 
 
 class CrashPredictor:
@@ -159,16 +161,44 @@ class CrashPredictor:
         # TODO: multiprocessing?
         audio_data = get_normalized_audio_amplitude(
             video_file_path, os.path.splitext(os.path.basename(video_file_path))[0])
-        print(audio_data.shape)
         template_matching_variance = SignDetector().process_video(video_file_path,
                                                                   compute_variance=True)
-        print(template_matching_variance.shape)
         ssim, fps = CrashBarSSIM().detect(video_file_path)
-        print(ssim.shape)
         data = np.stack((template_matching_variance, ssim, audio_data), axis=1)
         if show:
             plot_features_for_video(video_file_path, ssim_results=ssim,
                                     variance=template_matching_variance, sound_data=audio_data)
+        return data
+
+    def extract_features_multiprocess(self, video_file_path):
+        capture = cv2.VideoCapture(video_file_path)
+        num_frames = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
+
+        audio_q = Queue()
+        sign_var_q = Queue()
+        ssim_q = Queue()
+
+        audio_p = Process(target=get_normalized_audio_amplitude_multiprocess, 
+                    args=(video_file_path, os.path.splitext(os.path.basename(video_file_path))[0], 
+                    audio_q))
+        sign_var_p = Process(target=SignDetector().process_video_multiprocess,
+                             args=(video_file_path, sign_var_q, True))
+        ssim_p = Process(target=CrashBarSSIM().detect_multiprocess,
+                         args=(video_file_path, ssim_q))
+
+        audio_p.start()
+        sign_var_p.start()
+        ssim_p.start()
+
+        audio_data = audio_q.get()
+        template_matching_variance = sign_var_q.get()
+        ssim = ssim_q.get()
+
+        audio_p.join()
+        sign_var_p.join()
+        ssim_p.join()
+
+        data = np.stack((template_matching_variance, ssim, audio_data), axis=1)
         return data
 
     def evaluate_performance(self, dataset, probability_threshold=0.5, verbose=False):

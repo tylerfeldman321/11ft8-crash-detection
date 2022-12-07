@@ -34,6 +34,10 @@ class CrashBarSSIM:
             self._visualize_differences(differences, file, fps=fps)
         return np.array(differences), fps
 
+    def detect_multiprocess(self, file, q):
+        ssim, fps = self.detect(file, visualize=False)
+        q.put(ssim)
+
     def _play_video(self, file, fps=15):
         cap = cv2.VideoCapture(file)
         while cap.isOpened():
