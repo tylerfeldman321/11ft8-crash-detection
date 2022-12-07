@@ -104,9 +104,12 @@ class CrashPredictor:
         return split_x, split_y
 
     def filter_raw_predictions(self, predictions, probabilities):
-        """ Generate timestamps from predictions. Filter out predictions that are close to one another """
+        """ Generate timestamps from predictions. Filter out predictions that are close to one another """        
         frame_predictions = np.where(predictions == 1.0)[0]
         frame_prediction_probabilities = probabilities[frame_predictions]
+
+        if not len(frame_predictions):
+            return []
 
         frame_prediction_probabilities_sorted, frame_predictions_sorted = zip(*sorted(zip(frame_prediction_probabilities, frame_predictions), reverse=True))
 
