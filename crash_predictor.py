@@ -15,7 +15,7 @@ import cv2
 
 class CrashPredictor:
 
-    THRESHOLD = 100
+    THRESHOLD = 900
     PRED_CORRECTNESS_THRESHOLD = 50  # In num of frames
 
     def __init__(self, clf=None):
@@ -79,7 +79,7 @@ class CrashPredictor:
             if show_results:
                 self.plot_predictions(predictions, y, name)
 
-            frames_predictions = self.filter_raw_predictions(predictions)
+            frames_predictions = self.filter_raw_predictions(predictions, probabilities)
             timestamps = [self.convert_frame_to_timestamp(frame) for frame in frames_predictions]
             times = self.convert_to_hour_minute_second(timestamps)
 
@@ -103,21 +103,30 @@ class CrashPredictor:
         split_y = y[start:start + length]
         return split_x, split_y
 
-    def filter_raw_predictions(self, predictions):
+    def filter_raw_predictions(self, predictions, probabilities):
         """ Generate timestamps from predictions. Filter out predictions that are close to one another """
-        frames = []
-        for i, pred in enumerate(predictions):
-            if pred == 1.0:  # Predicted crash
-                frames.append(i)
-        copy = []
-        for frame in frames:
-            flag = True
-            for element in copy:
-                if np.abs(element - frame) < self.THRESHOLD:
-                    flag = False
-            if flag:
-                copy.append(frame)
-        return copy
+        frame_predictions = np.where(predictions == 1.0)[0]
+        frame_prediction_probabilities = probabilities[frame_predictions]
+
+        frame_prediction_probabilities_sorted, frame_predictions_sorted = zip(*sorted(zip(frame_prediction_probabilities, frame_predictions), reverse=True))
+
+        frame_predictions_filtered = []
+        frame_predictions_ignored = []
+        for i in range(len(frame_predictions_sorted)):
+
+            frame = frame_predictions_sorted[i]
+
+            if frame in frame_predictions_ignored:
+                continue
+
+            frame_predictions_filtered.append(frame)
+
+            for j in range(len(frame_predictions_sorted)):
+                other_frame = frame_predictions_sorted[j]
+                if np.abs(other_frame - frame) < self.THRESHOLD:
+                    frame_predictions_ignored.append(other_frame)
+
+        return frame_predictions_filtered
 
     def convert_frame_to_timestamp(self, frame_number, fps=15):
         """ Convert frame number to timestamp in seconds """
