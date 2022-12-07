@@ -10,6 +10,7 @@ from audio_processing.audio_processing import get_normalized_audio_amplitude
 from crash_bar_processing.crash_bar_ssim import CrashBarSSIM
 from sign_detection.sign_detector import SignDetector
 import argparse
+import cv2
 
 
 class CrashPredictor:
@@ -78,7 +79,7 @@ class CrashPredictor:
             if show_results:
                 self.plot_predictions(predictions, y, name)
 
-            frames_predictions = self.generate_timestamps(predictions)
+            frames_predictions = self.filter_raw_predictions(predictions)
             timestamps = [self.convert_frame_to_timestamp(frame) for frame in frames_predictions]
             times = self.convert_to_hour_minute_second(timestamps)
 
@@ -102,7 +103,7 @@ class CrashPredictor:
         split_y = y[start:start + length]
         return split_x, split_y
 
-    def generate_timestamps(self, predictions):
+    def filter_raw_predictions(self, predictions):
         """ Generate timestamps from predictions. Filter out predictions that are close to one another """
         frames = []
         for i, pred in enumerate(predictions):
@@ -146,10 +147,14 @@ class CrashPredictor:
         if not video_file_path.endswith('mp4'):
             raise Exception('Provided file is not in mp4 format.')
 
+        capture = cv2.VideoCapture(video_file_path)
+        fps = int(capture.get(cv2.CAP_PROP_FPS))
+
         data = self.extract_features(video_file_path)
 
         predictions = self.clf.predict(data)
-        timestamps = self.generate_timestamps(predictions)
+        frames_predictions = self.filter_raw_predictions(predictions)
+        timestamps = [self.convert_frame_to_timestamp(frame, fps) for frame in frames_predictions]
         times = self.convert_to_hour_minute_second(timestamps)
         print('Predicted Crashes: ', end='')
         print(*times)
