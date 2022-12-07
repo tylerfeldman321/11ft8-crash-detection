@@ -196,8 +196,6 @@ class CrashPredictor:
         return precision, recall
 
 
-
-
 def find_nearest(array, value):
     array = np.asarray(array)
     idx = (np.abs(array - value)).argmin()
