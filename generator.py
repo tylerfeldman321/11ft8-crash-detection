@@ -7,7 +7,7 @@ from sign_detection.sign_detector import SignDetector
 
 BEFORE_WINDOW = 15
 AFTER_WINDOW = 30
-CRASH_FOLDER = 'data/'
+CRASH_FOLDER = 'data/crash samples/'
 SSIM_CSV = 'data/ssim.csv'
 TIMESTAMPS_CSV = 'data/timestamps.csv'
 LABELS_CSV = 'data/labels.csv'
