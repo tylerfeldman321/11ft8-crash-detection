@@ -8,7 +8,7 @@ To set up the repository, clone the repo, create an environment, and run `pip in
 ## Usage
 
 ### Inference on Videos
-To get timestamps of potential crashes using image discrepancies across the crash bar, run:
+To get timestamps of potential crashes, run:
 
 ```bash
 python3 crash_predictor.py <video_file.mp4>
