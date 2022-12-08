@@ -99,31 +99,5 @@ def load_timestamps():
     return timestamps_dict
 
 
-def plot_dataset(dataset):
-    X_train, X_test, y_train, y_test, _, _ = dataset
-
-    X = np.vstack((X_train, X_test))
-    x_min, x_max = X[:, 0].min() - 0.5, X[:, 0].max() + 0.5
-    y_min, y_max = X[:, 1].min() - 0.5, X[:, 1].max() + 0.5
-
-    # just plot the dataset first
-    plt.figure()
-    cm = plt.cm.RdBu
-    cm_bright = ListedColormap(["#0000FF", "#0000FF"])
-    plt.scatter(X_train[y_train == 1][:, 0], X_train[y_train == 1][:, 1],
-                c=y_train[y_train == 1], cmap=cm_bright, edgecolors="k")
-    # Plot the testing points
-    # plt.scatter(
-    #     X_test[y_test == 1][:, 0], X_test[y_test == 1][:, 1], c=y_test[y_test == 1], cmap=cm_bright, alpha=0.6, edgecolors="k"
-    # )
-    plt.title('Dataset')
-    plt.xlabel('Sign Detection Variance')
-    plt.ylabel('Bar Similarity')
-    plt.xlim(x_min, x_max)
-    plt.ylim(y_min, y_max)
-    plt.show()
-
-
 if __name__ == '__main__':
     dataset = load_dataset()
-    plot_dataset(dataset)
