@@ -63,8 +63,7 @@ class CrashPredictor:
             X, y = self.split_data_by_video(X_test, y_test, start, length)
             start += length
 
-            probabilities = self.clf.predict_proba(X)[:, 1]  # self.clf.predict(X)
-            predictions = (probabilities >= probability_threshold) * 1
+            predictions, probabilities = self.predict(X, probability_threshold)
 
             score = self.clf.score(X, y)
 
@@ -96,6 +95,12 @@ class CrashPredictor:
             print(f'Number of Postive Samples: {len_pos_samples}')
 
         return frame_prediction_dict
+
+    def predict(self, X, probability_threshold):
+        """ Make predictions on data X given probability threshold. Returns predictions (0 or 1) as well as probabilities """
+        probabilities = self.clf.predict_proba(X)[:, 1]
+        predictions = (probabilities >= probability_threshold) * 1
+        return predictions, probabilities
 
     def split_data_by_video(self, X, y, start, length):
         """ Split the data by video """
@@ -151,21 +156,24 @@ class CrashPredictor:
         plt.ylabel('Crash likelihood')
         plt.show()
 
-    def __call__(self, *args):
+    def __call__(self, args):
         """ Run inference on a video file """
-        video_file_path = args[0]
+        video_file_path = args.file
         if not os.path.exists(video_file_path):
             raise Exception(f'Provided video does not exist: {video_file_path}')
         if not video_file_path.endswith('mp4'):
             raise Exception('Provided file is not in mp4 format.')
+
+        probability_threshold = args.probability_threshold
 
         capture = cv2.VideoCapture(video_file_path)
         fps = int(capture.get(cv2.CAP_PROP_FPS))
 
         data = self.extract_features(video_file_path)
 
-        predictions = self.clf.predict(data)
-        frames_predictions = self.filter_raw_predictions(predictions)
+        predictions, probabilities = self.predict(data, probability_threshold)
+
+        frames_predictions = self.filter_raw_predictions(predictions, probabilities)
         timestamps = [self.convert_frame_to_timestamp(frame, fps) for frame in frames_predictions]
         times = self.convert_to_hour_minute_second(timestamps)
         print('Predicted Crashes: ', end='')
@@ -275,10 +283,11 @@ def find_nearest(array, value):
 def main():
     parser = argparse.ArgumentParser(description='Detect pixel changes in a video file')
     parser.add_argument('file', help='Path to video file')
+    parser.add_argument('-p', '--probability-threshold', type=float, default=0.5, help='Probability threshold for the neural network')
     args = parser.parse_args()
     cp = CrashPredictor()
     cp.load_model()
-    cp(args.file)
+    cp(args)
 
 
 if __name__ == '__main__':
