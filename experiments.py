@@ -2,9 +2,10 @@ from crash_predictor import CrashPredictor
 from dataset import load_dataset
 import numpy as np
 import matplotlib.pyplot as plt
+from constants import DEFAULT_PROBABILITY_THRESHOLD
 
 
-def run_cross_validation(probability_threshold=0.5, num_folds=50):
+def run_cross_validation(probability_threshold=DEFAULT_PROBABILITY_THRESHOLD, num_folds=50):
     """ Perform random fold cross validation
 
     Args:
@@ -27,16 +28,16 @@ def run_cross_validation(probability_threshold=0.5, num_folds=50):
     return avg_precision, avg_recall
 
 
-def plot_precision_recall_for_varying_thresolds():
+def plot_precision_recall_for_varying_thresolds(num_thresholds=51, num_folds=10):
     """ Compute precision, recall, and f1 for a range of decision thresholds """
-    probability_thresholds = np.linspace(0, 1.0, 51)
+    probability_thresholds = np.linspace(0, 1.0, num_thresholds)
     
     precisions = np.zeros(len(probability_thresholds))
     recalls = np.zeros(len(probability_thresholds))
     f1_scores = np.zeros(len(probability_thresholds))
 
     for i, probability_threshold in enumerate(probability_thresholds):
-        p, r = run_cross_validation(probability_threshold, num_folds=10)
+        p, r = run_cross_validation(probability_threshold, num_folds=num_folds)
         precisions[i] = p
         recalls[i] = r
         f1_scores[i] = 2 * (p * r) / (p + r)
