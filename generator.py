@@ -4,15 +4,8 @@ import os
 from crash_bar_processing.crash_bar_ssim import CrashBarSSIM
 from audio_processing.audio_processing import get_normalized_audio_amplitude
 from sign_detection.sign_detector import SignDetector
-
-BEFORE_WINDOW = 15
-AFTER_WINDOW = 30
-CRASH_FOLDER = 'data/crash samples/'
-SSIM_CSV = 'data/ssim.csv'
-TIMESTAMPS_CSV = 'data/timestamps.csv'
-LABELS_CSV = 'data/labels.csv'
-AUDIO_CSV = 'data/audio.csv'
-SIGN_DETECTION_VARIANCE_CSV = 'data/sign_detection_variance.csv'
+from constants import CRASH_FOLDER, SSIM_CSV, TIMESTAMPS_CSV, LABELS_CSV, AUDIO_CSV, SIGN_DETECTION_VARIANCE_CSV
+from constants import FRAME_LABEL_WINDOW_BEFORE_CRASH, FRAME_LABEL_WINDOW_AFTER_CRASH
 
 
 def list_dir(rootdir):
@@ -76,18 +69,18 @@ def generate_labels(ssim_csv, timestamps_csv, labels_csv):
     for file, frame in zip(timestamps['file'], timestamps['frame']):
         data = np.zeros(len(ssims))
         labels = pd.Series(data)
-        labels.iloc[frame - BEFORE_WINDOW:frame + AFTER_WINDOW] = 1.0
+        labels.iloc[frame - FRAME_LABEL_WINDOW_BEFORE_CRASH:frame + FRAME_LABEL_WINDOW_AFTER_CRASH] = 1.0
         labels_all[file] = labels
     labels_all.to_csv(labels_csv, index_label='frame')
 
 
-def main():
-    # Takes about 30 minutes to analyze all 10min videos
-    # generate_ssim_data(CRASH_FOLDER, SSIM_CSV)
-    # generate_labels(SSIM_CSV, TIMESTAMPS_CSV, LABELS_CSV)
+def generate_all_data():
+    generate_labels(SSIM_CSV, TIMESTAMPS_CSV, LABELS_CSV)
+
+    generate_ssim_data(CRASH_FOLDER, SSIM_CSV)
     generate_audio_data(CRASH_FOLDER, AUDIO_CSV)
-    # generate_sign_detection_variance_data(CRASH_FOLDER, SIGN_DETECTION_VARIANCE_CSV)
+    generate_sign_detection_variance_data(CRASH_FOLDER, SIGN_DETECTION_VARIANCE_CSV)
 
 
 if __name__ == '__main__':
-    main()
+    generate_all_data()
