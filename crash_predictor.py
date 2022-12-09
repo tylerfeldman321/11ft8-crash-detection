@@ -11,6 +11,7 @@ from crash_bar_processing.crash_bar_ssim import CrashBarSSIM
 from sign_detection.sign_detector import SignDetector
 import argparse
 import cv2
+from constants import MODELS_DIR
 
 
 class CrashPredictor:
@@ -38,11 +39,15 @@ class CrashPredictor:
         else:
             self.clf.fit(X_train, y_train)
 
-    def save_model(self, save_path='mlp.pkl'):
+    def save_model(self, save_path=os.path.join(MODELS_DIR, 'mlp.pkl'), verbose=True):
         pickle.dump(self.clf, open(save_path, 'wb'))
+        if verbose:
+            print(f'Saved model to {save_path}')
 
-    def load_model(self, model_path='mlp.pkl'):
+    def load_model(self, model_path=os.path.join(MODELS_DIR, 'mlp.pkl'), verbose=True):
         self.clf = pickle.load(open(model_path, 'rb'))
+        if verbose:
+            print(f'Loaded model from {model_path}')
 
     def test(self, dataset, probability_threshold=0.5, show_results=False, verbose=False):
         """ Evaluate the model by running on unseen testing set """

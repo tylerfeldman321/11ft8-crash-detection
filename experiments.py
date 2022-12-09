@@ -55,13 +55,6 @@ def plot_precision_recall_for_varying_thresolds():
     np.save('f1.npy', f1_scores)
 
 
-def train_all_and_save_model():
-    cp = CrashPredictor()
-    dataset = load_dataset(show_results=False)
-    cp.train(dataset, train_all=True)
-    cp.save_model()
-
-
 def train_and_test():
     cp = CrashPredictor()
     dataset = load_dataset(show_results=False)
