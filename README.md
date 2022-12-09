@@ -25,15 +25,15 @@ After creating and activating your environment, change directories into the root
 ## Usage
 
 ### Inference on Videos
-To get timestamps of potential crashes, run the following command in your terminal or anaconda. You must be in the root directory of this repository.
+To get timestamps of potential crashes, run the following command in your terminal or anaconda. You must be in the root directory of this repository. You may have to run `python` or `python3` for all of these python commands depending on your installation.
 
 ```bash
-python3 crash_predictor.py <video_file.mp4>
+python crash_predictor.py <video_file.mp4>
 ```
 
 You can optionally add an argument to specify the probability decision threshold used for the neural network. This will override the default probability threshold that is set in `constants.py`.
 ```bash
-python3 crash_predictor.py <video_file.mp4> -p=0.5
+python crash_predictor.py <video_file.mp4> -p=0.5
 ```
 
 ### Generating Data for Processing
@@ -41,7 +41,7 @@ To batch generate data for model processing, first add a `crash samples` subdire
 
 Then, run:
 ```bash
-python3 generator.py
+python generator.py
 ```
 
 ## Authors
