@@ -11,7 +11,7 @@ from crash_bar_processing.crash_bar_ssim import CrashBarSSIM
 from sign_detection.sign_detector import SignDetector
 import argparse
 import cv2
-from constants import MODELS_DIR
+from constants import MODELS_DIR, DEFAULT_PROBABILITY_THRESHOLD
 
 
 class CrashPredictor:
@@ -49,7 +49,7 @@ class CrashPredictor:
         if verbose:
             print(f'Loaded model from {model_path}')
 
-    def test(self, dataset, probability_threshold=0.5, show_results=False, verbose=False):
+    def test(self, dataset, probability_threshold=DEFAULT_PROBABILITY_THRESHOLD, show_results=False, verbose=False):
         """ Evaluate the model by running on unseen testing set """
 
         if verbose:
@@ -198,7 +198,7 @@ class CrashPredictor:
                                     variance=template_matching_variance, sound_data=audio_data)
         return data
 
-    def evaluate_performance(self, dataset, probability_threshold=0.5, verbose=False):
+    def evaluate_performance(self, dataset, probability_threshold=DEFAULT_PROBABILITY_THRESHOLD, verbose=False):
         """ Evaluate the performance of the model
 
         Args:
@@ -288,7 +288,7 @@ def find_nearest(array, value):
 def main():
     parser = argparse.ArgumentParser(description='Detect pixel changes in a video file')
     parser.add_argument('file', help='Path to video file')
-    parser.add_argument('-p', '--probability-threshold', type=float, default=0.5, help='Probability threshold for the neural network')
+    parser.add_argument('-p', '--probability-threshold', type=float, default=DEFAULT_PROBABILITY_THRESHOLD, help='Probability threshold for the neural network')
     args = parser.parse_args()
     cp = CrashPredictor()
     cp.load_model()

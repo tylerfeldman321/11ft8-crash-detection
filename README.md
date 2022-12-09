@@ -31,6 +31,11 @@ To get timestamps of potential crashes, run the following command in your termin
 python3 crash_predictor.py <video_file.mp4>
 ```
 
+You can optionally add an argument to specify the probability decision threshold used for the neural network. This will override the default probability threshold that is set in `constants.py`.
+```bash
+python3 crash_predictor.py <video_file.mp4> -p=0.5
+```
+
 ### Generating Data for Processing
 To batch generate data for model processing, first add a `crash samples` subdirectory in `data`. Each video should be housed in its own directory with a name is a description of the video (i.e. `2021-03-31_Crane-stuck-c161`). The file extension of the video should be `.copy.mp4`. An example of the proper filestructure is `\data\crash\2021-03-31_Crane-stuck-c161\20210331.121000.11foot82b.copy.mp4`.
 
