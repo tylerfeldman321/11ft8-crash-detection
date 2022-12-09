@@ -6,16 +6,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 from generator import TIMESTAMPS_CSV
+from constants import AUDIO_CSV, SIGN_DETECTION_VARIANCE_CSV, SSIM_CSV, LABELS_CSV, TRAIN_PERCENTAGE
 
 
-SOUND_DATA_CSV = os.path.join('data', 'audio.csv')
-SIGN_DETECTION_RESULTS_CSV = os.path.join('data', 'sign_detection_variance.csv')
-BAR_SIM_RESULTS_CSV = os.path.join('data', 'ssim.csv')
-LABELS_CSV = os.path.join('data', 'labels.csv')
-TRAIN_PERCENTAGE = 0.75
-
-
-def load_dataset(verbose=False, show_results=True, seed=0):
+def load_dataset(verbose=False, show_results=False, seed=0):
     """ Loads the dataset and labels into a train and test split """
 
     if verbose:
@@ -25,9 +19,9 @@ def load_dataset(verbose=False, show_results=True, seed=0):
     np.random.seed(seed)
     np.random.shuffle(video_names)
 
-    sound_df = pd.read_csv(SOUND_DATA_CSV)
-    sign_detection_variance_df = pd.read_csv(SIGN_DETECTION_RESULTS_CSV)
-    ssim_df = pd.read_csv(BAR_SIM_RESULTS_CSV)
+    sound_df = pd.read_csv(AUDIO_CSV)
+    sign_detection_variance_df = pd.read_csv(SIGN_DETECTION_VARIANCE_CSV)
+    ssim_df = pd.read_csv(SSIM_CSV)
     labels_df = pd.read_csv(LABELS_CSV)
 
     X_train, y_train, X_test, y_test = None, None, None, None
@@ -100,4 +94,4 @@ def load_timestamps():
 
 
 if __name__ == '__main__':
-    dataset = load_dataset()
+    dataset = load_dataset(verbose=True, show_results=True)
