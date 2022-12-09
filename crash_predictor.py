@@ -11,14 +11,10 @@ from crash_bar_processing.crash_bar_ssim import CrashBarSSIM
 from sign_detection.sign_detector import SignDetector
 import argparse
 import cv2
-from constants import MODELS_DIR, DEFAULT_PROBABILITY_THRESHOLD
+from constants import MODELS_DIR, DEFAULT_PROBABILITY_THRESHOLD, NEIGHBORING_PREDICTION_FILTERING_THRESHOLD, PREDICTION_CORRECTNESS_THRESHOLD
 
 
 class CrashPredictor:
-
-    THRESHOLD = 900
-    PRED_CORRECTNESS_THRESHOLD = 50  # In num of frames
-
     def __init__(self, clf=None):
         if clf:
             self.clf = clf
@@ -170,7 +166,7 @@ class CrashPredictor:
 
             for j in range(len(frame_predictions_sorted)):
                 other_frame = frame_predictions_sorted[j]
-                if np.abs(other_frame - frame) < self.THRESHOLD:
+                if np.abs(other_frame - frame) < NEIGHBORING_PREDICTION_FILTERING_THRESHOLD:
                     frame_predictions_ignored.append(other_frame)
 
         return frame_predictions_filtered
@@ -328,7 +324,7 @@ class CrashPredictor:
         Returns:
             bool: True if a prediction is within a threshold from the true crash frame
         """
-        return np.abs(find_nearest(pred_crash_frames, true_crash_frame) - true_crash_frame) < self.PRED_CORRECTNESS_THRESHOLD
+        return np.abs(find_nearest(pred_crash_frames, true_crash_frame) - true_crash_frame) < PREDICTION_CORRECTNESS_THRESHOLD
 
 
 def compute_precision_and_recall(tp, fp, fn):
