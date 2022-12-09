@@ -83,7 +83,7 @@ class CrashPredictor:
         frame_prediction_dict = {}
 
         for length, name in zip(test_data_lengths, test_data_names):
-            X, y = self.split_data_by_video(X_test, y_test, start, length)
+            X, y = self._split_data_by_video(X_test, y_test, start, length)
             start += length
 
             predictions, probabilities = self.predict(X, probability_threshold)
@@ -101,9 +101,9 @@ class CrashPredictor:
             if show_results:
                 self.plot_predictions(predictions, probabilities, y, name)
 
-            frames_predictions = self.filter_raw_predictions(predictions, probabilities)
-            timestamps = [self.convert_frame_to_timestamp(frame) for frame in frames_predictions]
-            times = self.convert_to_hour_minute_second(timestamps)
+            frames_predictions = self._filter_raw_predictions(predictions, probabilities)
+            timestamps = [self._convert_frame_to_timestamp(frame) for frame in frames_predictions]
+            times = self._convert_to_hour_minute_second(timestamps)
 
             if verbose:
                 print(f'Predicted crashes at {times} for video {name}.')
@@ -133,13 +133,13 @@ class CrashPredictor:
         predictions = (probabilities >= probability_threshold) * 1
         return predictions, probabilities
 
-    def split_data_by_video(self, X, y, start, length):
+    def _split_data_by_video(self, X, y, start, length):
         """ Split the data by video """
         split_x = X[start:start + length]
         split_y = y[start:start + length]
         return split_x, split_y
 
-    def filter_raw_predictions(self, predictions, probabilities):
+    def _filter_raw_predictions(self, predictions, probabilities):
         """ Generate timestamps from predictions. Filter out predictions that are close to one another
 
         Args:
@@ -175,7 +175,7 @@ class CrashPredictor:
 
         return frame_predictions_filtered
 
-    def convert_frame_to_timestamp(self, frame_number, fps=15):
+    def _convert_frame_to_timestamp(self, frame_number, fps=15):
         """ Convert frame to timestamp
 
         Args:
@@ -187,7 +187,7 @@ class CrashPredictor:
         """
         return frame_number/fps
 
-    def convert_to_hour_minute_second(self, timestamps):
+    def _convert_to_hour_minute_second(self, timestamps):
         """ Convert a list of seconds to a list of times in hour, minutes, seconds format
 
         Args:
@@ -247,9 +247,9 @@ class CrashPredictor:
 
         predictions, probabilities = self.predict(data, probability_threshold)
 
-        frames_predictions = self.filter_raw_predictions(predictions, probabilities)
-        timestamps = [self.convert_frame_to_timestamp(frame, fps) for frame in frames_predictions]
-        times = self.convert_to_hour_minute_second(timestamps)
+        frames_predictions = self._filter_raw_predictions(predictions, probabilities)
+        timestamps = [self._convert_frame_to_timestamp(frame, fps) for frame in frames_predictions]
+        times = self._convert_to_hour_minute_second(timestamps)
         print('Predicted Crashes: ', end='')
         print(*times)
 
@@ -263,6 +263,7 @@ class CrashPredictor:
         Returns:
             ndarray: Numpy array of shape (num_samples, num_features)
         """
+        assert type(video_file_path) == str, "The provided video path must be of type str"
         # TODO: multiprocessing?
         audio_data = get_normalized_audio_amplitude(
             video_file_path, os.path.splitext(os.path.basename(video_file_path))[0])
@@ -278,7 +279,7 @@ class CrashPredictor:
     def evaluate_performance(self, dataset, probability_threshold=DEFAULT_PROBABILITY_THRESHOLD, verbose=False):
         """ Evaluate the performance of the model
 
-        This assumes only 1 true crash in the video. If there are more than 1 true crashes in the video, then this function should be updated.
+        NOTE: This assumes only 1 true crash in the video. If there are more than 1 true crashes in the video, then this function should be updated.
 
         Args:
             dataset (Tuple): dataset returned from load_data.
@@ -304,7 +305,7 @@ class CrashPredictor:
             # If timestamp is near label, true positive
             # If no timestamp near label, false negative
             fp += len(pred_crash_frames)
-            if len(pred_crash_frames) and self.found_true_crash(pred_crash_frames, true_crash_frame):
+            if len(pred_crash_frames) and self._found_true_crash(pred_crash_frames, true_crash_frame):
                 tp += 1
                 fp -= 1
             else:
@@ -317,7 +318,7 @@ class CrashPredictor:
 
         return precision, recall
 
-    def found_true_crash(self, pred_crash_frames, true_crash_frame):
+    def _found_true_crash(self, pred_crash_frames, true_crash_frame):
         """ Finds if we've found the true crash in the video
 
         Args:
