@@ -38,7 +38,7 @@ python crash_predictor.py <video_file.mp4> -p=0.5
 
 ### Training
 
-**Warning** End users should not need to retrain the model. Using the pre-trained model found in `models/mlp.pkl` is recommended. 
+⚠️ End users should not need to retrain the model. Using the pre-trained model found in `models/mlp.pkl` is recommended. ⚠️
 
 To batch generate data for model training, first add a `crash samples` subdirectory in `data`. Each video should be housed in its own directory with a name is a description of the video (i.e. `2021-03-31_Crane-stuck-c161`). The file extension of the video should be `.copy.mp4`. An example of the proper filestructure is `\data\crash samples\2021-03-31_Crane-stuck-c161\20210331.121000.11foot82b.copy.mp4`.
 
