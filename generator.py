@@ -22,8 +22,15 @@ def list_dir(rootdir):
 
 
 def generate_ssim_data(crash_folder, csv_path):
-    """ Create a pandas DataFrame where the row index is the frame and the column index is file. 
-    The data is the ssim of each frame. Write it to a file after processing all videos. """
+    """ Generate crash bar SSIM csv data for all videos in crash folder
+
+    Creates a pandas DataFrame where the row index is the frame and the column index is file. 
+    The data is the ssim of each frame. Write it to a file after processing all videos.
+
+    Args:
+        crash_folder (str): Path to the crash folder
+        csv_path (str): Path to save the csv file
+    """
     videos = list_dir(crash_folder)
     detector = CrashBarSSIM()
     ssims = pd.DataFrame()
@@ -37,7 +44,15 @@ def generate_ssim_data(crash_folder, csv_path):
 
 
 def generate_audio_data(crash_folder, csv_path):
-    """ Generate audio data from mp4 files """
+    """ Generate audio magnitude data for all videos in crash folder
+
+    Creates a pandas DataFrame where the row index is the frame and the column index is file. 
+    The data is the normalized audio magnitude of each frame. Write it to a file after processing all videos.
+
+    Args:
+        crash_folder (str): Path to the crash folder
+        csv_path (str): Path to save the csv file
+    """
     videos = list_dir(crash_folder)
     audio = pd.DataFrame()
     for vid in videos:
@@ -50,6 +65,15 @@ def generate_audio_data(crash_folder, csv_path):
 
 
 def generate_sign_detection_variance_data(crash_folder, csv_path):
+    """ Generate sign detection variance csv data for all videos in crash folder
+
+    Creates a pandas DataFrame where the row index is the frame and the column index is file. 
+    The data is the sign detection moving variance of each frame. Write it to a file after processing all videos.
+
+    Args:
+        crash_folder (str): Path to the crash folder
+        csv_path (str): Path to save the csv file
+    """
     videos = list_dir(crash_folder)
     sign_detector = SignDetector()
     sign_detection_variance = pd.DataFrame()
@@ -63,6 +87,16 @@ def generate_sign_detection_variance_data(crash_folder, csv_path):
 
 
 def generate_labels(ssim_csv, timestamps_csv, labels_csv):
+    """ Generate labels all videos in crash folder.
+
+    Reads the timestamps csv file and creates a csv file that has a label for every frame in the 
+    video. Frames within a window close to the labeled crash in the timestamps csv are declared as a crash.
+
+    Args:
+        ssim_csv (str): Path to the ssim 
+        timestamps_csv (str): Path to the timestamps csv file.
+        labels_csv (str): Path to the labels csv file to write.
+    """
     ssims = pd.read_csv(ssim_csv, index_col='frame')
     timestamps = pd.read_csv(timestamps_csv)
     labels_all = pd.DataFrame()
@@ -75,6 +109,7 @@ def generate_labels(ssim_csv, timestamps_csv, labels_csv):
 
 
 def generate_all_data():
+    """ Generate all data """
     generate_labels(SSIM_CSV, TIMESTAMPS_CSV, LABELS_CSV)
 
     generate_ssim_data(CRASH_FOLDER, SSIM_CSV)
