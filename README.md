@@ -39,10 +39,9 @@ python crash_predictor.py <video_file.mp4> -p=0.5
 If the path to the video file has a space in it, make sure to include quotes around the filepath. For example if the video is located at `data/crash videos/video.mp4`, then run `python crash_predictor.py "data/crash videos/video.mp4"`
 
 ### Training
-
 ⚠️ End users should not need to retrain the model. Using the pre-trained model found in `models/mlp.pkl` is recommended. ⚠️
 
-To batch generate data for model training, first add a `crash_samples` subdirectory in `data`. Each video should be housed in its own directory with a name is a description of the video (i.e. `2021-03-31_Crane-stuck-c161`). The file extension of the video should be `.copy.mp4`. An example of the proper filestructure is `\data\crash_samples\2021-03-31_Crane-stuck-c161\20210331.121000.11foot82b.copy.mp4`.
+To batch generate data for model training, first add a `crash_samples` subdirectory in `data`. This subdirectory needs to match with the `CRASH_FOLDER` variable in `constants.py`. Each video should be housed in its own directory with a name is a description of the video (i.e. `2021-03-31_Crane-stuck-c161`). The file extension of the video should be `.mp4`. An example of the proper filestructure is `\data\crash_samples\2021-03-31_Crane-stuck-c161\20210331.121000.11foot82b.mp4`.
 
 Then, run:
 ```bash
