@@ -11,9 +11,10 @@ import os
 import glob
 from sklearn.neighbors import KernelDensity
 import pandas as pd
+from constants import DATA_DIR
 
 
-DATA_DIR = '../data'
+DATA_DIR_RELATIVE = os.path.join('..', DATA_DIR)
 RESULTS_DIR = 'results'
 LABELS_DIR = 'labels'
 TEMPLATE_DIR = 'templates'
@@ -66,7 +67,7 @@ def plot_template_matching_for_video(video_path, skip=5, show=True, save=True):
 
 def template_matching_for_all_videos_in_data():
     """ Save template matching results for all videos in data """
-    video_paths = glob.glob(os.path.join(DATA_DIR, '*', '*.mp4'))
+    video_paths = glob.glob(os.path.join(DATA_DIR_RELATIVE, '*', '*.mp4'))
     for video_path in video_paths:
         plot_template_matching_for_video(video_path, show=False, save=True)
 
@@ -261,7 +262,7 @@ def convert_data_to_csv(num_frames=9000, skip=5):
         df_dict[f'{filename}'] = list(sign_detection_results)
 
     df = pd.DataFrame(df_dict)
-    df.to_csv(os.path.join(DATA_DIR, 'sign_detection_results.csv'), index=False)
+    df.to_csv(os.path.join(DATA_DIR_RELATIVE, 'sign_detection_results.csv'), index=False)
 
 
 def clean_and_pad_sign_detection_results(sign_detection_results, num_frames=9000, skip=5):
@@ -307,9 +308,18 @@ def automatic_data_label():
         plt.xlabel('Frame')
         plt.show()
         plt.close()
+
+
+def initialize_directories():
+    if not os.path.exists(LABELS_DIR):
+        os.mkdir(LABELS_DIR)
+    if not os.path.join(RESULTS_DIR):
+        os.mkdir(RESULTS_DIR)
             
 
 if __name__ == "__main__":
+    initialize_directories()
+
     # plot_template_matching_for_video(r'..\data\2019-12-19_Lost-cargo-evening-light-c152\20191219.125001.11foot82b.copy.mp4')
     # template_matching_for_all_videos_in_data()
 
@@ -317,7 +327,7 @@ if __name__ == "__main__":
     # automatic_data_label()
     plot_kde_and_roc()
 
-    # video_paths = glob.glob(os.path.join(DATA_DIR, '*', '*.mp4'))
+    # video_paths = glob.glob(os.path.join(DATA_DIR_RELATIVE, '*', '*.mp4'))
     # for video_path in video_paths:
     #     print(video_path)
     #     save_image_and_template_from_video(video_path)
