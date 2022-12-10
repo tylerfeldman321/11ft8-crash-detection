@@ -44,7 +44,7 @@ class SignDetector:
 
         template_match_values = []
 
-        for i in tqdm(range(num_frames), f'Processing video: '):
+        for i in tqdm(range(num_frames), f'Running template matching: '):
             ret, frame = capture.read()
             if frame is None:
                 break

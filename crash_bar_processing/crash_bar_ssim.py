@@ -49,7 +49,7 @@ class CrashBarSSIM:
         masked_target = cv2.bitwise_and(target, target, mask=mask)
         cap = cv2.VideoCapture(file)
         differences = []
-        pbar = tqdm(total=int(cap.get(cv2.CAP_PROP_FRAME_COUNT)))
+        pbar = tqdm(total=int(cap.get(cv2.CAP_PROP_FRAME_COUNT)), desc='Running crash bar SSIM: ')
         fps = cap.get(cv2.CAP_PROP_FPS)
         while cap.isOpened():
             ret, frame = cap.read()
