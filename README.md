@@ -25,7 +25,7 @@ After creating and activating your environment, change directories into the root
 ## Usage
 
 ### Inference on Videos
-To get timestamps of potential crashes, run the following command in your terminal or anaconda. You must be in the root directory of this repository. You may have to run `python` or `python3` for all of these python commands depending on your installation.
+To get timestamps of potential crashes, run the following command in your terminal or anaconda. Replace <video_file.mp4> with the path to your video file. You must be in the root directory of this repository. You may have to run `python` or `python3` for all of these python commands depending on your installation.
 
 ```bash
 python crash_predictor.py <video_file.mp4>
@@ -35,6 +35,8 @@ You can optionally add an argument to specify the probability decision threshold
 ```bash
 python crash_predictor.py <video_file.mp4> -p=0.5
 ```
+
+If the path to the video file has a space in it, make sure to include quotes around the filepath. For example if the video is located at `data/crash videos/video.mp4`, then run `python crash_predictor.py "data/crash videos/video.mp4"`
 
 ### Generating Data for Processing
 To batch generate data for model processing, first add a `crash samples` subdirectory in `data`. Each video should be housed in its own directory with a name is a description of the video (i.e. `2021-03-31_Crane-stuck-c161`). The file extension of the video should be `.copy.mp4`. An example of the proper filestructure is `\data\crash\2021-03-31_Crane-stuck-c161\20210331.121000.11foot82b.copy.mp4`.
