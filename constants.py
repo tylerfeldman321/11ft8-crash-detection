@@ -2,7 +2,7 @@ DATA_DIR = 'data'
 MODELS_DIR = 'models'
 DEFAULT_PROBABILITY_THRESHOLD = 0.5
 
-CRASH_FOLDER = 'data/crash samples/'
+CRASH_FOLDER = 'data/crash_samples/'
 SSIM_CSV = 'data/ssim.csv'
 TIMESTAMPS_CSV = 'data/timestamps.csv'
 LABELS_CSV = 'data/labels.csv'
