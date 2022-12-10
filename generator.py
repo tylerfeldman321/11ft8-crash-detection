@@ -6,6 +6,7 @@ from audio_processing.audio_processing import get_normalized_audio_amplitude
 from sign_detection.sign_detector import SignDetector
 from constants import CRASH_FOLDER, SSIM_CSV, TIMESTAMPS_CSV, LABELS_CSV, AUDIO_CSV, SIGN_DETECTION_VARIANCE_CSV
 from constants import FRAME_LABEL_WINDOW_BEFORE_CRASH, FRAME_LABEL_WINDOW_AFTER_CRASH
+from constants import MP4_EXT
 
 
 def list_dir(rootdir):
@@ -16,7 +17,7 @@ def list_dir(rootdir):
         if os.path.isdir(d):
             for vid in os.listdir(d):
                 vid_file = os.path.join(d, vid)
-                if os.path.isfile(vid_file) and vid.endswith('.copy.mp4'):
+                if os.path.isfile(vid_file) and vid.endswith(MP4_EXT):
                     ret[vid_name] = vid_file
     return ret
 

@@ -17,3 +17,5 @@ FRAME_LABEL_WINDOW_AFTER_CRASH = 30
 # TODO: make these in seconds instead of num frames
 NEIGHBORING_PREDICTION_FILTERING_THRESHOLD = 450  # In number of frames
 PREDICTION_CORRECTNESS_THRESHOLD = 50  # In num of frames
+
+MP4_EXT = '.mp4'
