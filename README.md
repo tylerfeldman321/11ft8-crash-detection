@@ -50,7 +50,7 @@ python generator.py
 
 Once the data is generated, you can retrain the model by running:
 ```bash
-python3 train.py
+python train.py
 ```
 
 ## Authors
