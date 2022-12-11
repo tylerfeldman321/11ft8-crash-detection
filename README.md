@@ -53,5 +53,20 @@ Once the data is generated, you can retrain the model by running:
 python train.py
 ```
 
+### Changing settings
+If you would like to change some hyperparameters defined, as well as that paths where data and other files are stored, you can edit the constants in the `constants.py` file. However, none of these are necessary to change and 
+
+## Code Structure
+`constants.py` - Contains constants defined for paths and other variables.
+`crash_predictor.py` - Main file to run to predict crashses on a video file. Contains a CrashPredictor class that has function to train, test, and evaluate the model.
+`dataset.py` - Contains file to load and process the dataset.
+`generator.py` - Contains code to process video files to generate the dataset.
+`experiments.py` - Can be ran to .
+`train.py` - Contains code to train the model on the entire dataset and save the resulting model.
+
+`audio_processing` - Package for audio processing.
+`crash_bar_processing` - Package for detecting the crash bar and running structural similarity.
+`sign_detection` - Package for detecting the OVERHEIGHT MUST TURN sign.
+
 ## Authors
 Tyler Feldman, Sarah Habib, Rodrigo de Albuquerque, Shaan Gondalia
